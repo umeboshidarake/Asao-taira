@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEON STOCK EVOLUTION</title>
+<title>NEON STOCK GOD MODE</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -11,19 +11,11 @@ body{
     margin:0;
     font-family:Arial,sans-serif;
     background:#0f0f1a;
-    color:#fff;
+    color:white;
     text-align:center;
     transition:0.5s;
 }
-.container{
-    max-width:1000px;
-    margin:auto;
-    padding:10px;
-}
-h1{
-    color:#00f5ff;
-    text-shadow:0 0 20px #00f5ff;
-}
+.container{max-width:1100px;margin:auto;padding:10px;}
 .card{
     background:#1a1a2e;
     padding:15px;
@@ -38,19 +30,24 @@ button{
     background:#00f5ff;
     cursor:pointer;
 }
-button:hover{ background:#00aaff; }
-.locked{
-    opacity:0.5;
+button:hover{background:#00aaff;}
+.locked{opacity:0.5;}
+.flavor{
+    font-size:12px;
+    color:#00f5ff;
+    margin-top:5px;
+    min-height:18px;
 }
 @media(max-width:600px){
-    canvas{width:100%!important;height:200px!important;}
+    canvas{width:100%!important;height:250px!important;}
 }
 </style>
 </head>
 <body>
 
 <div class="container">
-<h1>NEON STOCK EVOLUTION</h1>
+
+<h1>NEON STOCK GOD MODE</h1>
 
 <div id="nicknameScreen">
 <input type="text" id="nicknameInput" placeholder="ニックネーム">
@@ -62,17 +59,18 @@ button:hover{ background:#00aaff; }
 <p>👤 <span id="playerName"></span></p>
 <p>💰 ポイント: <span id="points"></span></p>
 <p>📰 ニュース: <span id="news"></span></p>
+<p>⏳ 次の変動まで: <span id="timer"></span></p>
 
 <h2>📈 株式市場</h2>
 <div id="stocksArea"></div>
 
-<h2>🛒 ショップ</h2>
+<h2>🛒 背景ショップ</h2>
 <div class="card">
 背景レベル: <span id="bgLevel"></span><br>
-<button onclick="upgradeBackground()">背景を進化 (5000pt)</button>
+<button onclick="upgradeBackground()">背景進化 (5000pt)</button>
 </div>
 
-<h3>📊 グラフ</h3>
+<h2>📊 市場グラフ</h2>
 <canvas id="chart"></canvas>
 
 </div>
@@ -80,224 +78,263 @@ button:hover{ background:#00aaff; }
 
 <script>
 
+/* ===== 基本 ===== */
+
 let nickname;
 let points=50000;
-let selectedStock=0;
-let chart;
 let bgLevel=1;
+let chart;
+let nextChangeTime;
 
-const stockNames=[
-"Tech","Energy","Game","AI","Food",
-"Auto","Space","Medical","Crypto","Media"
+/* ===== 個別設定可能データ ===== */
+
+const stockConfig = [
+{name:"Tech", unlockCost:0, personality:"growth", flavor:"未来を切り開く革新企業。"},
+{name:"Energy", unlockCost:0, personality:"stable", flavor:"安定供給で堅実な動き。"},
+{name:"Game", unlockCost:0, personality:"volatile", flavor:"ヒット次第で爆発する。"},
+{name:"AI", unlockCost:15000, personality:"growth", flavor:"急成長中のAI市場。"},
+{name:"Food", unlockCost:20000, personality:"stable", flavor:"不況でも強い生活産業。"},
+{name:"Auto", unlockCost:30000, personality:"stable", flavor:"伝統と技術の融合。"},
+{name:"Space", unlockCost:50000, personality:"risky", flavor:"夢とリスクの宇宙産業。"},
+{name:"Medical", unlockCost:80000, personality:"growth", flavor:"革新的医療の最前線。"},
+{name:"Crypto", unlockCost:120000, personality:"volatile", flavor:"乱高下の王者。"},
+{name:"Media", unlockCost:200000, personality:"risky", flavor:"流行を掴めば大勝利。"}
 ];
 
-let stocks=stockNames.map((name,i)=>({
-    name:name,
-    price:Math.floor(Math.random()*100)+50,
-    owned:0,
-    unlocked:i<3?true:false,
-    unlockCost:10000*(i+1),
-    history:[]
+let stocks = stockConfig.map((data,i)=>({
+name:data.name,
+unlockCost:data.unlockCost,
+personality:data.personality,
+flavor:data.flavor,
+price:Math.floor(Math.random()*100)+50,
+owned:0,
+unlocked:data.unlockCost===0,
+history:[]
 }));
 
 stocks.forEach(s=>s.history.push(s.price));
 
 const newsList=[
-{text:"好景気！",effect:20},
-{text:"市場暴落",effect:-20},
+{text:"好景気！市場上昇",effect:20},
+{text:"市場暴落！",effect:-20},
 {text:"技術革新！",effect:15},
 {text:"金融不安",effect:-15},
 {text:"安定相場",effect:0}
 ];
 
-/* 起動 */
+/* ===== 起動 ===== */
 
 window.onload=function(){
-    const saved=JSON.parse(localStorage.getItem("gameData"));
-    const savedName=localStorage.getItem("nickname");
-    if(saved && savedName){
-        nickname=savedName;
-        points=saved.points;
-        stocks=saved.stocks;
-        bgLevel=saved.bgLevel||1;
-        startGame(true);
-    }
+const saved=JSON.parse(localStorage.getItem("gameData"));
+const savedName=localStorage.getItem("nickname");
+if(saved && savedName){
+nickname=savedName;
+points=saved.points;
+stocks=saved.stocks;
+bgLevel=saved.bgLevel;
+nextChangeTime=saved.nextChangeTime;
+startGame(true);
+}
 };
 
-/* 開始 */
+/* ===== ゲーム開始 ===== */
 
 function startGame(auto=false){
-    if(!auto){
-        nickname=document.getElementById("nicknameInput").value;
-        if(!nickname)return;
-        localStorage.setItem("nickname",nickname);
-    }
-
-    document.getElementById("nicknameScreen").style.display="none";
-    document.getElementById("gameScreen").style.display="block";
-    document.getElementById("playerName").innerText=nickname;
-
-    applyBackground();
-    renderStocks();
-    updateDisplay();
-    createChart();
-    startFluctuation();
+if(!auto){
+nickname=document.getElementById("nicknameInput").value;
+if(!nickname)return;
+localStorage.setItem("nickname",nickname);
+nextChangeTime=Date.now()+3600000;
+}
+document.getElementById("nicknameScreen").style.display="none";
+document.getElementById("gameScreen").style.display="block";
+document.getElementById("playerName").innerText=nickname;
+applyBackground();
+renderStocks();
+updateDisplay();
+createChart();
+startTimer();
 }
 
-/* 株表示 */
+/* ===== 株表示 ===== */
 
 function renderStocks(){
-    const div=document.getElementById("stocksArea");
-    div.innerHTML="";
-
-    stocks.forEach((stock,i)=>{
-
-        if(!stock.unlocked){
-            div.innerHTML+=`
-            <div class="card locked">
-            🔒 ${stock.name}<br>
-            解禁コスト: ${stock.unlockCost}<br>
-            <button onclick="unlockStock(${i})">解禁</button>
-            </div>`;
-        }else{
-            div.innerHTML+=`
-            <div class="card">
-            <b>${stock.name}</b><br>
-            価格:${stock.price}<br>
-            保有:${stock.owned}<br>
-            <button onclick="trade(${i},1)">1株買</button>
-            <button onclick="trade(${i},10)">10株買</button>
-            <button onclick="trade(${i},-1)">1株売</button>
-            <button onclick="trade(${i},-10)">10株売</button><br>
-            <button onclick="selectStock(${i})">グラフ</button>
-            </div>`;
-        }
-
-    });
+const div=document.getElementById("stocksArea");
+div.innerHTML="";
+stocks.forEach((stock,i)=>{
+if(!stock.unlocked){
+div.innerHTML+=`
+<div class="card locked">
+<b>${stock.name}</b><br>
+解禁:${stock.unlockCost}<br>
+<button onclick="unlockStock(${i})">解禁</button>
+<div class="flavor">${stock.flavor}</div>
+</div>`;
+}else{
+div.innerHTML+=`
+<div class="card">
+<b onmouseover="showFlavor(${i})" onmouseout="hideFlavor(${i})">
+${stock.name}
+</b>
+<div id="flavor-${i}" class="flavor"></div>
+価格:${stock.price}<br>
+保有:${stock.owned}<br>
+<button onclick="trade(${i},1)">1株買</button>
+<button onclick="trade(${i},10)">10株買</button>
+<button onclick="trade(${i},100)">100株買</button><br>
+<button onclick="trade(${i},-1)">1株売</button>
+<button onclick="trade(${i},-10)">10株売</button>
+<button onclick="trade(${i},-100)">100株売</button>
+</div>`;
+}
+});
 }
 
-/* 解禁 */
-
-function unlockStock(i){
-    if(points>=stocks[i].unlockCost){
-        points-=stocks[i].unlockCost;
-        stocks[i].unlocked=true;
-        saveGame();
-        updateDisplay();
-        renderStocks();
-    }
+function showFlavor(i){
+document.getElementById("flavor-"+i).innerText=stocks[i].flavor;
 }
 
-/* 売買 */
+function hideFlavor(i){
+document.getElementById("flavor-"+i).innerText="";
+}
+
+/* ===== 売買 ===== */
 
 function trade(i,amount){
-    const stock=stocks[i];
-    if(!stock.unlocked)return;
-
-    if(amount>0){
-        const cost=stock.price*amount;
-        if(points>=cost){
-            points-=cost;
-            stock.owned+=amount;
-        }
-    }else{
-        const sell=Math.abs(amount);
-        if(stock.owned>=sell){
-            points+=stock.price*sell;
-            stock.owned-=sell;
-        }
-    }
-
-    saveGame();
-    updateDisplay();
-    renderStocks();
+const stock=stocks[i];
+if(!stock.unlocked)return;
+if(amount>0){
+const cost=stock.price*amount;
+if(points>=cost){
+points-=cost;
+stock.owned+=amount;
+}
+}else{
+const sell=Math.abs(amount);
+if(stock.owned>=sell){
+points+=stock.price*sell;
+stock.owned-=sell;
+}
+}
+saveGame();
+updateDisplay();
+renderStocks();
 }
 
-/* 背景進化 */
+/* ===== 解禁 ===== */
+
+function unlockStock(i){
+if(points>=stocks[i].unlockCost){
+points-=stocks[i].unlockCost;
+stocks[i].unlocked=true;
+saveGame();
+renderStocks();
+updateDisplay();
+}
+}
+
+/* ===== 背景 ===== */
 
 function upgradeBackground(){
-    if(points>=5000){
-        points-=5000;
-        bgLevel++;
-        applyBackground();
-        saveGame();
-        updateDisplay();
-    }
+if(points>=5000){
+points-=5000;
+bgLevel++;
+applyBackground();
+saveGame();
+updateDisplay();
+}
 }
 
 function applyBackground(){
-    document.getElementById("bgLevel").innerText=bgLevel;
-
-    if(bgLevel==1)document.body.style.background="#0f0f1a";
-    if(bgLevel==2)document.body.style.background="linear-gradient(45deg,#0f0f1a,#1f0040)";
-    if(bgLevel==3)document.body.style.background="linear-gradient(45deg,#001f3f,#0f0f1a)";
-    if(bgLevel>=4)document.body.style.background="linear-gradient(45deg,#003300,#000)";
+document.getElementById("bgLevel").innerText=bgLevel;
+if(bgLevel==1)document.body.style.background="#0f0f1a";
+if(bgLevel==2)document.body.style.background="linear-gradient(45deg,#0f0f1a,#1f0040)";
+if(bgLevel==3)document.body.style.background="linear-gradient(45deg,#001f3f,#0f0f1a)";
+if(bgLevel>=4)document.body.style.background="linear-gradient(45deg,#003300,#000)";
 }
 
-/* 株価変動 */
+/* ===== 1時間変動 ===== */
 
-function startFluctuation(){
-    setInterval(()=>{
-        const news=newsList[Math.floor(Math.random()*newsList.length)];
-        document.getElementById("news").innerText=news.text;
-
-        stocks.forEach(stock=>{
-            if(stock.unlocked){
-                let change=Math.floor(Math.random()*11)-5;
-                stock.price+=change+news.effect;
-                if(stock.price<10)stock.price=10;
-                stock.history.push(stock.price);
-            }
-        });
-
-        saveGame();
-        renderStocks();
-        updateChart();
-
-    },5000);
+function startTimer(){
+setInterval(()=>{
+let remaining=nextChangeTime-Date.now();
+if(remaining<=0){
+marketUpdate();
+nextChangeTime=Date.now()+3600000;
+}
+let minutes=Math.floor(remaining/60000);
+let seconds=Math.floor((remaining%60000)/1000);
+document.getElementById("timer").innerText=
+minutes+"分 "+seconds+"秒";
+saveGame();
+},1000);
 }
 
-/* グラフ */
+function marketUpdate(){
+const news=newsList[Math.floor(Math.random()*newsList.length)];
+document.getElementById("news").innerText=news.text;
+
+stocks.forEach(stock=>{
+if(stock.unlocked){
+let change;
+switch(stock.personality){
+case "stable": change=Math.floor(Math.random()*5)-2; break;
+case "volatile": change=Math.floor(Math.random()*21)-10; break;
+case "growth": change=Math.floor(Math.random()*8)+1; break;
+case "risky": change=Math.floor(Math.random()*31)-15; break;
+}
+stock.price+=change+news.effect;
+if(stock.price<10)stock.price=10;
+stock.history.push(stock.price);
+}
+});
+
+updateChart();
+}
+
+/* ===== グラフ ===== */
 
 function createChart(){
-    const ctx=document.getElementById("chart").getContext("2d");
-    chart=new Chart(ctx,{
-        type:"line",
-        data:{
-            labels:stocks[selectedStock].history.map((_,i)=>i),
-            datasets:[{
-                label:stocks[selectedStock].name,
-                data:stocks[selectedStock].history
-            }]
-        }
-    });
+const ctx=document.getElementById("chart").getContext("2d");
+chart=new Chart(ctx,{
+type:"line",
+data:{
+labels:stocks[0].history.map((_,i)=>i),
+datasets:stocks.map(stock=>({
+label:stock.name,
+data:stock.history,
+tension:0.3
+}))
+},
+options:{responsive:true}
+});
 }
 
 function updateChart(){
-    chart.data.labels=stocks[selectedStock].history.map((_,i)=>i);
-    chart.data.datasets[0].data=stocks[selectedStock].history;
-    chart.update();
+chart.data.labels=stocks[0].history.map((_,i)=>i);
+chart.data.datasets=stocks.map(stock=>({
+label:stock.name,
+data:stock.history,
+tension:0.3
+}));
+chart.update();
 }
 
-function selectStock(i){
-    selectedStock=i;
-    updateChart();
-}
-
-/* 表示 */
+/* ===== 表示 ===== */
 
 function updateDisplay(){
-    document.getElementById("points").innerText=points;
+document.getElementById("points").innerText=points;
 }
 
-/* 保存 */
+/* ===== 保存 ===== */
 
 function saveGame(){
-    localStorage.setItem("gameData",JSON.stringify({
-        points:points,
-        stocks:stocks,
-        bgLevel:bgLevel
-    }));
+localStorage.setItem("gameData",JSON.stringify({
+points:points,
+stocks:stocks,
+bgLevel:bgLevel,
+nextChangeTime:nextChangeTime
+}));
 }
 
 </script>
