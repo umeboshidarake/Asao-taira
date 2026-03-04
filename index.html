@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEON STOCK GOD MODE</title>
+<title>CYBER STOCK 2099</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -14,21 +15,27 @@ body{
     background:#050510;
     color:#00f5ff;
     text-align:center;
-    transition:0.5s;
+    overflow-x:hidden;
 }
 
-/* 背景にゆっくり動くグラデーション */
-body::before{
-    content:"";
+#particles{
     position:fixed;
     top:0;
     left:0;
     width:100%;
     height:100%;
+    z-index:-2;
+}
+
+body::before{
+    content:"";
+    position:fixed;
+    width:100%;
+    height:100%;
     background:linear-gradient(45deg,#001f3f,#0a0a2a,#001a33,#000814);
     background-size:400% 400%;
     animation:bgMove 15s ease infinite;
-    z-index:-1;
+    z-index:-3;
 }
 
 @keyframes bgMove{
@@ -37,39 +44,28 @@ body::before{
     100%{background-position:0% 50%;}
 }
 
-.container{
-    max-width:1100px;
-    margin:auto;
-    padding:10px;
-}
-
-/* タイトル発光 */
 h1{
     font-size:42px;
-    font-weight:900;
-    text-shadow:
-        0 0 10px #00f5ff,
-        0 0 20px #00f5ff,
-        0 0 40px #0088ff;
+    text-shadow:0 0 10px #00f5ff,
+                0 0 20px #00f5ff,
+                0 0 40px #0088ff;
 }
 
-/* カード */
 .card{
     background:rgba(0,0,30,0.8);
     border:1px solid #00f5ff;
     box-shadow:0 0 15px #00f5ff55;
     padding:15px;
-    margin:12px 0;
+    margin:12px;
     border-radius:12px;
     transition:0.3s;
 }
 
 .card:hover{
-    box-shadow:0 0 25px #00f5ffaa;
     transform:scale(1.02);
+    box-shadow:0 0 25px #00f5ffaa;
 }
 
-/* ボタン */
 button{
     padding:6px 12px;
     margin:4px;
@@ -78,7 +74,6 @@ button{
     background:transparent;
     color:#00f5ff;
     cursor:pointer;
-    transition:0.3s;
 }
 
 button:hover{
@@ -87,28 +82,16 @@ button:hover{
     box-shadow:0 0 10px #00f5ff;
 }
 
-/* ロック状態 */
 .locked{
     opacity:0.4;
-    filter:blur(1px);
 }
 
-/* フレーバーテキスト */
 .flavor{
     font-size:13px;
     color:#66ffff;
-    margin-top:6px;
     min-height:18px;
-    text-shadow:0 0 5px #00f5ff;
 }
 
-/* 情報テキスト */
-p{
-    font-size:15px;
-    text-shadow:0 0 5px #0088ff;
-}
-
-/* グラフ */
 canvas{
     background:rgba(0,0,30,0.7);
     border:1px solid #00f5ff;
@@ -116,264 +99,155 @@ canvas{
     box-shadow:0 0 15px #00f5ff55;
 }
 
-/* スマホ最適化 */
 @media(max-width:600px){
     h1{font-size:28px;}
     canvas{width:100%!important;height:250px!important;}
 }
 </style>
 </head>
+
 <body>
+
 <canvas id="particles"></canvas>
 
-<div class="container">
+<h1>CYBER STOCK 2099</h1>
 
-<h1>NEON STOCK GOD MODE</h1>
-
-<div id="nicknameScreen">
-<input type="text" id="nicknameInput" placeholder="ニックネーム">
-<button onclick="startGame()">START</button>
+<div>
+💰 ポイント: <span id="points">50000</span><br>
+📰 ニュース: <span id="news">市場待機中</span><br>
+⏳ 次の変動まで: <span id="timer">--</span>
 </div>
 
-<div id="gameScreen" style="display:none">
-
-<p>👤 <span id="playerName"></span></p>
-<p>💰 ポイント: <span id="points"></span></p>
-<p>📰 ニュース: <span id="news"></span></p>
-<p>⏳ 次の変動まで: <span id="timer"></span></p>
-
-<h2>📈 株式市場</h2>
 <div id="stocksArea"></div>
 
-<h2>🛒 背景ショップ</h2>
-<div class="card">
-背景レベル: <span id="bgLevel"></span><br>
-<button onclick="upgradeBackground()">背景進化 (5000pt)</button>
-</div>
-
-<h2>📊 市場グラフ</h2>
+<h2>📈 市場グラフ</h2>
 <canvas id="chart"></canvas>
 
-</div>
-</div>
+<br>
+<button onclick="toggleBGM()">🎵 BGM ON/OFF</button>
+
+<audio id="bgm" loop>
+<source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_115b9bce59.mp3?filename=future-technology-ambient-110624.mp3" type="audio/mpeg">
+</audio>
 
 <script>
-
-/* ===== 基本 ===== */
-
-let nickname;
 let points=50000;
-let bgLevel=1;
 let chart;
 let nextChangeTime;
+const CHANGE_INTERVAL=3600000;
 
-/* ===== 個別設定可能データ ===== */
-
-const stockConfig = [
-{name:"Tech", unlockCost:0, personality:"growth", flavor:"未来を切り開く革新企業。"},
-{name:"Energy", unlockCost:0, personality:"stable", flavor:"安定供給で堅実な動き。"},
-{name:"Game", unlockCost:0, personality:"volatile", flavor:"ヒット次第で爆発する。"},
-{name:"AI", unlockCost:15000, personality:"growth", flavor:"急成長中のAI市場。"},
-{name:"Food", unlockCost:20000, personality:"stable", flavor:"不況でも強い生活産業。"},
-{name:"Auto", unlockCost:30000, personality:"stable", flavor:"伝統と技術の融合。"},
-{name:"Space", unlockCost:50000, personality:"risky", flavor:"夢とリスクの宇宙産業。"},
-{name:"Medical", unlockCost:80000, personality:"growth", flavor:"革新的医療の最前線。"},
-{name:"Crypto", unlockCost:120000, personality:"volatile", flavor:"乱高下の王者。"},
-{name:"Media", unlockCost:200000, personality:"risky", flavor:"流行を掴めば大勝利。"}
+const stockConfig=[
+{name:"Tech",unlockCost:0,personality:"growth",flavor:"未来を切り開く革新企業。"},
+{name:"Energy",unlockCost:0,personality:"stable",flavor:"安定供給の巨人。"},
+{name:"Game",unlockCost:0,personality:"volatile",flavor:"ヒット次第で爆上がり。"},
+{name:"AI",unlockCost:15000,personality:"growth",flavor:"急成長AI市場。"},
+{name:"Food",unlockCost:20000,personality:"stable",flavor:"不況に強い。"},
+{name:"Auto",unlockCost:30000,personality:"stable",flavor:"伝統と革新。"},
+{name:"Space",unlockCost:50000,personality:"risky",flavor:"夢と暴落。"},
+{name:"Medical",unlockCost:80000,personality:"growth",flavor:"医療革命。"},
+{name:"Crypto",unlockCost:120000,personality:"volatile",flavor:"乱高下の王。"},
+{name:"Media",unlockCost:200000,personality:"risky",flavor:"流行で爆発。"}
 ];
 
-let stocks = stockConfig.map((data,i)=>({
-name:data.name,
-unlockCost:data.unlockCost,
-personality:data.personality,
-flavor:data.flavor,
+let stocks=stockConfig.map(s=>({
+...s,
 price:Math.floor(Math.random()*100)+50,
 owned:0,
-unlocked:data.unlockCost===0,
-history:[]
+unlocked:s.unlockCost===0,
+history:[],
+lockedShares:0
 }));
 
 stocks.forEach(s=>s.history.push(s.price));
 
 const newsList=[
-{text:"好景気！市場上昇",effect:20},
-{text:"市場暴落！",effect:-20},
-{text:"技術革新！",effect:15},
+{text:"好景気",effect:20},
+{text:"暴落",effect:-20},
+{text:"技術革新",effect:15},
 {text:"金融不安",effect:-15},
 {text:"安定相場",effect:0}
 ];
 
-/* ===== 起動 ===== */
-
-window.onload=function(){
-const saved=JSON.parse(localStorage.getItem("gameData"));
-const savedName=localStorage.getItem("nickname");
-if(saved && savedName){
-nickname=savedName;
-points=saved.points;
-stocks=saved.stocks;
-bgLevel=saved.bgLevel;
-nextChangeTime=saved.nextChangeTime;
-startGame(true);
-}
-};
-
-/* ===== ゲーム開始 ===== */
-
-function startGame(auto=false){
-if(!auto){
-nickname=document.getElementById("nicknameInput").value;
-if(!nickname)return;
-localStorage.setItem("nickname",nickname);
-nextChangeTime=Date.now()+3600000;
-}
-document.getElementById("nicknameScreen").style.display="none";
-document.getElementById("gameScreen").style.display="block";
-document.getElementById("playerName").innerText=nickname;
-applyBackground();
-renderStocks();
-updateDisplay();
-createChart();
-startTimer();
-}
-
-/* ===== 株表示 ===== */
-
 function renderStocks(){
-const div=document.getElementById("stocksArea");
-div.innerHTML="";
-stocks.forEach((stock,i)=>{
-if(!stock.unlocked){
-div.innerHTML+=`
-<div class="card locked">
-<b>${stock.name}</b><br>
-解禁:${stock.unlockCost}<br>
-<button onclick="unlockStock(${i})">解禁</button>
-<div class="flavor">${stock.flavor}</div>
-</div>`;
-}else{
-div.innerHTML+=`
+const area=document.getElementById("stocksArea");
+area.innerHTML="";
+stocks.forEach((s,i)=>{
+area.innerHTML+=`
 <div class="card">
-<b onmouseover="showFlavor(${i})" onmouseout="hideFlavor(${i})">
-${stock.name}
-</b>
-<div id="flavor-${i}" class="flavor"></div>
-価格:${stock.price}<br>
-保有:${stock.owned}<br>
+<b>${s.name}</b><br>
+価格: ${s.price}<br>
+保有: ${s.owned}<br>
 <button onclick="trade(${i},1)">1株買</button>
 <button onclick="trade(${i},10)">10株買</button>
 <button onclick="trade(${i},100)">100株買</button><br>
 <button onclick="trade(${i},-1)">1株売</button>
 <button onclick="trade(${i},-10)">10株売</button>
 <button onclick="trade(${i},-100)">100株売</button>
+<div class="flavor">${s.flavor}</div>
 </div>`;
-}
 });
 }
 
-function showFlavor(i){
-document.getElementById("flavor-"+i).innerText=stocks[i].flavor;
-}
-
-function hideFlavor(i){
-document.getElementById("flavor-"+i).innerText="";
-}
-
-/* ===== 売買 ===== */
-
 function trade(i,amount){
-const stock=stocks[i];
-if(!stock.unlocked)return;
+let s=stocks[i];
 if(amount>0){
-const cost=stock.price*amount;
+let cost=s.price*amount;
 if(points>=cost){
 points-=cost;
-stock.owned+=amount;
+s.owned+=amount;
+s.lockedShares+=amount;
 }
 }else{
-const sell=Math.abs(amount);
-if(stock.owned>=sell){
-points+=stock.price*sell;
-stock.owned-=sell;
+let sell=Math.abs(amount);
+let sellable=s.owned-s.lockedShares;
+if(sell>sellable){
+alert("この変動中に買った株は売れません");
+return;
 }
+points+=s.price*sell;
+s.owned-=sell;
 }
-saveGame();
 updateDisplay();
 renderStocks();
-}
-
-/* ===== 解禁 ===== */
-
-function unlockStock(i){
-if(points>=stocks[i].unlockCost){
-points-=stocks[i].unlockCost;
-stocks[i].unlocked=true;
-saveGame();
-renderStocks();
-updateDisplay();
-}
-}
-
-/* ===== 背景 ===== */
-
-function upgradeBackground(){
-if(points>=5000){
-points-=5000;
-bgLevel++;
-applyBackground();
-saveGame();
-updateDisplay();
-}
-}
-
-function applyBackground(){
-document.getElementById("bgLevel").innerText=bgLevel;
-if(bgLevel==1)document.body.style.background="#0f0f1a";
-if(bgLevel==2)document.body.style.background="linear-gradient(45deg,#0f0f1a,#1f0040)";
-if(bgLevel==3)document.body.style.background="linear-gradient(45deg,#001f3f,#0f0f1a)";
-if(bgLevel>=4)document.body.style.background="linear-gradient(45deg,#003300,#000)";
-}
-
-/* ===== 1時間変動 ===== */
-
-function startTimer(){
-setInterval(()=>{
-let remaining=nextChangeTime-Date.now();
-if(remaining<=0){
-marketUpdate();
-nextChangeTime=Date.now()+3600000;
-}
-let minutes=Math.floor(remaining/60000);
-let seconds=Math.floor((remaining%60000)/1000);
-document.getElementById("timer").innerText=
-minutes+"分 "+seconds+"秒";
-saveGame();
-},1000);
 }
 
 function marketUpdate(){
 const news=newsList[Math.floor(Math.random()*newsList.length)];
 document.getElementById("news").innerText=news.text;
-
-stocks.forEach(stock=>{
-if(stock.unlocked){
+stocks.forEach(s=>{
 let change;
-switch(stock.personality){
-case "stable": change=Math.floor(Math.random()*5)-2; break;
-case "volatile": change=Math.floor(Math.random()*21)-10; break;
-case "growth": change=Math.floor(Math.random()*8)+1; break;
-case "risky": change=Math.floor(Math.random()*31)-15; break;
+switch(s.personality){
+case "stable":change=Math.floor(Math.random()*5)-2;break;
+case "volatile":change=Math.floor(Math.random()*21)-10;break;
+case "growth":change=Math.floor(Math.random()*8)+1;break;
+case "risky":change=Math.floor(Math.random()*31)-15;break;
 }
-stock.price+=change+news.effect;
-if(stock.price<10)stock.price=10;
-stock.history.push(stock.price);
-}
+s.price+=change+news.effect;
+if(s.price<10)s.price=10;
+s.history.push(s.price);
+s.lockedShares=0;
 });
-
 updateChart();
 }
 
-/* ===== グラフ ===== */
+function startTimer(){
+nextChangeTime=Date.now()+CHANGE_INTERVAL;
+setInterval(()=>{
+let now=Date.now();
+if(now>=nextChangeTime){
+marketUpdate();
+nextChangeTime=now+CHANGE_INTERVAL;
+}
+let remain=nextChangeTime-now;
+let m=Math.floor(remain/60000);
+let s=Math.floor((remain%60000)/1000);
+document.getElementById("timer").innerText=m+"分 "+s+"秒";
+},1000);
+}
+
+function updateDisplay(){
+document.getElementById("points").innerText=points;
+}
 
 function createChart(){
 const ctx=document.getElementById("chart").getContext("2d");
@@ -381,9 +255,10 @@ chart=new Chart(ctx,{
 type:"line",
 data:{
 labels:stocks[0].history.map((_,i)=>i),
-datasets:stocks.map(stock=>({
-label:stock.name,
-data:stock.history,
+datasets:stocks.map(s=>({
+label:s.name,
+data:s.history,
+borderColor:"#00f5ff",
 tension:0.3
 }))
 },
@@ -393,31 +268,61 @@ options:{responsive:true}
 
 function updateChart(){
 chart.data.labels=stocks[0].history.map((_,i)=>i);
-chart.data.datasets=stocks.map(stock=>({
-label:stock.name,
-data:stock.history,
+chart.data.datasets=stocks.map(s=>({
+label:s.name,
+data:s.history,
+borderColor:"#00f5ff",
 tension:0.3
 }));
 chart.update();
 }
 
-/* ===== 表示 ===== */
+/* 粒子 */
+const canvasP=document.getElementById("particles");
+const ctxP=canvasP.getContext("2d");
+canvasP.width=window.innerWidth;
+canvasP.height=window.innerHeight;
 
-function updateDisplay(){
-document.getElementById("points").innerText=points;
+let particles=[];
+for(let i=0;i<100;i++){
+particles.push({
+x:Math.random()*canvasP.width,
+y:Math.random()*canvasP.height,
+r:Math.random()*2+1,
+dx:(Math.random()-0.5)*0.5,
+dy:(Math.random()-0.5)*0.5
+});
 }
 
-/* ===== 保存 ===== */
+function animateParticles(){
+ctxP.clearRect(0,0,canvasP.width,canvasP.height);
+particles.forEach(p=>{
+p.x+=p.dx;
+p.y+=p.dy;
+if(p.x<0||p.x>canvasP.width)p.dx*=-1;
+if(p.y<0||p.y>canvasP.height)p.dy*=-1;
+ctxP.beginPath();
+ctxP.arc(p.x,p.y,p.r,0,Math.PI*2);
+ctxP.fillStyle="#00f5ff";
+ctxP.shadowBlur=10;
+ctxP.shadowColor="#00f5ff";
+ctxP.fill();
+});
+requestAnimationFrame(animateParticles);
+}
+animateParticles();
 
-function saveGame(){
-localStorage.setItem("gameData",JSON.stringify({
-points:points,
-stocks:stocks,
-bgLevel:bgLevel,
-nextChangeTime:nextChangeTime
-}));
+function toggleBGM(){
+const bgm=document.getElementById("bgm");
+if(bgm.paused){bgm.play();}
+else{bgm.pause();}
 }
 
+renderStocks();
+updateDisplay();
+createChart();
+startTimer();
 </script>
+
 </body>
 </html>
