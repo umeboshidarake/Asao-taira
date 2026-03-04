@@ -1,178 +1,224 @@
-let nickname;
+const CHANGE_INTERVAL=3600000;
+
 let points=50000;
-let bgLevel=1;
+let stocks;
+let nextChange;
 let chart;
-let nextChangeTime;
 
-const CHANGE_INTERVAL = 3600000; // 1時間
-
-const stockConfig=[
-{name:"Tech",unlockCost:0,personality:"growth",flavor:"未来を切り開く革新企業。"},
-{name:"Energy",unlockCost:0,personality:"stable",flavor:"安定供給の巨人。"},
-{name:"Game",unlockCost:0,personality:"volatile",flavor:"ヒット次第で爆上がり。"},
-{name:"AI",unlockCost:15000,personality:"growth",flavor:"急成長AI市場。"},
-{name:"Food",unlockCost:20000,personality:"stable",flavor:"不況に強い。"},
-{name:"Auto",unlockCost:30000,personality:"stable",flavor:"伝統と革新。"},
-{name:"Space",unlockCost:50000,personality:"risky",flavor:"夢と暴落。"},
-{name:"Medical",unlockCost:80000,personality:"growth",flavor:"医療革命。"},
-{name:"Crypto",unlockCost:120000,personality:"volatile",flavor:"乱高下の王。"},
-{name:"Media",unlockCost:200000,personality:"risky",flavor:"流行で爆発。"}
+const stockBase=[
+{name:"TechNova",unlockCost:0,personality:"growth",flavor:"急成長テック企業"},
+{name:"GreenVolt",unlockCost:15000,personality:"stable",flavor:"再エネの安定株"},
+{name:"GameSphere",unlockCost:20000,personality:"volatile",flavor:"爆発的人気ゲーム会社"},
+{name:"AICore",unlockCost:30000,personality:"growth",flavor:"AIの未来を握る"},
+{name:"FoodChain",unlockCost:40000,personality:"stable",flavor:"生活必需の守護者"},
+{name:"AutoDrive",unlockCost:50000,personality:"stable",flavor:"自動運転革命"},
+{name:"SpaceXion",unlockCost:80000,personality:"risky",flavor:"宇宙開発の夢"},
+{name:"MediLife",unlockCost:100000,personality:"growth",flavor:"医療革新企業"},
+{name:"CryptoZen",unlockCost:150000,personality:"volatile",flavor:"仮想通貨の象徴"},
+{name:"MediaStorm",unlockCost:200000,personality:"risky",flavor:"世界を動かす報道機関"}
 ];
 
-let stocks=stockConfig.map(s=>({
+function initStocks(){
+stocks=stockBase.map(s=>({
 ...s,
 price:Math.floor(Math.random()*100)+50,
 owned:0,
+lockedShares:0,
 unlocked:s.unlockCost===0,
-history:[],
-lockedShares:0
+history:[]
 }));
+}
 
-stocks.forEach(s=>s.history.push(s.price));
+function startGame(){
+let nick=document.getElementById("nick").value;
+if(!nick)return;
 
-const newsList=[
-{text:"好景気",effect:20},
-{text:"暴落",effect:-20},
-{text:"技術革新",effect:15},
-{text:"金融不安",effect:-15},
-{text:"安定相場",effect:0}
-];
+localStorage.setItem("nickname",nick);
+
+if(!localStorage.getItem("save")){
+initStocks();
+nextChange=Date.now()+CHANGE_INTERVAL;
+save();
+}else{
+load();
+}
+
+document.getElementById("login").style.display="none";
+document.getElementById("game").style.display="block";
+document.getElementById("name").innerText=localStorage.getItem("nickname");
+
+processOffline();
+render();
+createChart();
+timerLoop();
+}
+
+function save(){
+localStorage.setItem("save",JSON.stringify({points,stocks,nextChange}));
+}
+
+function load(){
+let d=JSON.parse(localStorage.getItem("save"));
+points=d.points;
+stocks=d.stocks;
+nextChange=d.nextChange;
+}
+
+function processOffline(){
+while(Date.now()>=nextChange){
+marketUpdate();
+nextChange+=CHANGE_INTERVAL;
+}
+}
 
 function trade(i,amount){
-const stock=stocks[i];
-if(!stock.unlocked)return;
+let s=stocks[i];
+if(!s.unlocked)return;
 
 if(amount>0){
-let cost=stock.price*amount;
+let cost=s.price*amount;
 if(points>=cost){
 points-=cost;
-stock.owned+=amount;
-stock.lockedShares+=amount;
+s.owned+=amount;
+s.lockedShares+=amount;
 }
 }else{
 let sell=Math.abs(amount);
-let sellable=stock.owned-stock.lockedShares;
-if(sell>sellable){
+if(sell>s.owned-s.lockedShares){
 alert("この変動中に買った株は売れません");
 return;
 }
-points+=stock.price*sell;
-stock.owned-=sell;
+points+=s.price*sell;
+s.owned-=sell;
 }
-saveGame();
-renderStocks();
-updateDisplay();
+save();
+render();
 }
 
-function marketUpdateCore(){
-const news=newsList[Math.floor(Math.random()*newsList.length)];
-stocks.forEach(stock=>{
-if(stock.unlocked){
-let change;
-switch(stock.personality){
-case "stable":change=Math.floor(Math.random()*5)-2;break;
-case "volatile":change=Math.floor(Math.random()*21)-10;break;
-case "growth":change=Math.floor(Math.random()*8)+1;break;
-case "risky":change=Math.floor(Math.random()*31)-15;break;
+function unlock(i){
+let s=stocks[i];
+if(points>=s.unlockCost){
+points-=s.unlockCost;
+s.unlocked=true;
+save();
+render();
 }
-stock.price+=change+news.effect;
-if(stock.price<10)stock.price=10;
-stock.history.push(stock.price);
-stock.lockedShares=0; // 変動で解除
+}
+
+function render(){
+document.getElementById("points").innerText=points;
+let area=document.getElementById("stocks");
+area.innerHTML="";
+
+stocks.forEach((s,i)=>{
+if(!s.unlocked){
+area.innerHTML+=`
+<div class="card locked">
+${s.name}<br>
+解禁:${s.unlockCost}<br>
+<button onclick="unlock(${i})">解禁</button>
+</div>`;
+}else{
+area.innerHTML+=`
+<div class="card">
+<b title="${s.flavor}">${s.name}</b><br>
+価格:${s.price}<br>
+保有:${s.owned}<br>
+<button onclick="trade(${i},1)">+1</button>
+<button onclick="trade(${i},10)">+10</button>
+<button onclick="trade(${i},100)">+100</button><br>
+<button onclick="trade(${i},-1)">-1</button>
+<button onclick="trade(${i},-10)">-10</button>
+<button onclick="trade(${i},-100)">-100</button>
+</div>`;
 }
 });
-return news.text;
 }
 
-function processOfflineProgress(){
-const now=Date.now();
-if(!nextChangeTime){
-nextChangeTime=now+CHANGE_INTERVAL;
-return;
-}
-let count=0;
-while(now>=nextChangeTime){
-marketUpdateCore();
-nextChangeTime+=CHANGE_INTERVAL;
-count++;
-}
-if(count>0){
-document.getElementById("news").innerText=
-"オフライン中に "+count+" 回変動";
-}
-}
+function marketUpdate(){
+stocks.forEach(s=>{
+let change=Math.floor(Math.random()*20)-10;
 
-function startTimer(){
-setInterval(()=>{
-let now=Date.now();
-if(now>=nextChangeTime){
-let text=marketUpdateCore();
-document.getElementById("news").innerText=text;
-nextChangeTime=now+CHANGE_INTERVAL;
+if(s.personality==="growth")change+=5;
+if(s.personality==="volatile")change*=2;
+if(s.personality==="risky")change*=3;
+
+s.price+=change;
+if(s.price<10)s.price=10;
+
+s.history.push(s.price);
+s.lockedShares=0;
+});
+save();
 updateChart();
 }
-let remain=nextChangeTime-now;
+
+function timerLoop(){
+setInterval(()=>{
+if(Date.now()>=nextChange){
+marketUpdate();
+nextChange=Date.now()+CHANGE_INTERVAL;
+}
+let remain=nextChange-Date.now();
 let m=Math.floor(remain/60000);
 let s=Math.floor((remain%60000)/1000);
 document.getElementById("timer").innerText=m+"分 "+s+"秒";
-saveGame();
 },1000);
 }
 
-function saveGame(){
-localStorage.setItem("gameData",JSON.stringify({
-points,stocks,bgLevel,nextChangeTime
-}));
+function createChart(){
+chart=new Chart(document.getElementById("chart"),{
+type:"line",
+data:{labels:[],datasets:[]}
+});
+updateChart();
 }
 
-function loadGame(){
-const saved=JSON.parse(localStorage.getItem("gameData"));
-if(saved){
-points=saved.points;
-stocks=saved.stocks;
-bgLevel=saved.bgLevel;
-nextChangeTime=saved.nextChangeTime;
+function updateChart(){
+chart.data.labels=stocks[0].history.map((_,i)=>i);
+chart.data.datasets=stocks.map(s=>({
+label:s.name,
+data:s.history,
+borderColor:"#00f5ff",
+tension:0.3
+}));
+chart.update();
 }
+
+function toggleBGM(){
+let bgm=document.getElementById("bgm");
+bgm.paused?bgm.play():bgm.pause();
 }
 
 /* 粒子 */
-const canvasP=document.getElementById("particles");
-const ctxP=canvasP.getContext("2d");
-canvasP.width=window.innerWidth;
-canvasP.height=window.innerHeight;
+const canvas=document.getElementById("particles");
+const ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
 
-let particles=[];
+let parts=[];
 for(let i=0;i<100;i++){
-particles.push({
-x:Math.random()*canvasP.width,
-y:Math.random()*canvasP.height,
+parts.push({
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height,
 r:Math.random()*2+1,
-dx:(Math.random()-0.5)*0.5,
-dy:(Math.random()-0.5)*0.5
+dx:(Math.random()-0.5),
+dy:(Math.random()-0.5)
 });
 }
 
-function animateParticles(){
-ctxP.clearRect(0,0,canvasP.width,canvasP.height);
-particles.forEach(p=>{
+function anim(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+parts.forEach(p=>{
 p.x+=p.dx;
 p.y+=p.dy;
-if(p.x<0||p.x>canvasP.width)p.dx*=-1;
-if(p.y<0||p.y>canvasP.height)p.dy*=-1;
-ctxP.beginPath();
-ctxP.arc(p.x,p.y,p.r,0,Math.PI*2);
-ctxP.fillStyle="#00f5ff";
-ctxP.shadowBlur=10;
-ctxP.shadowColor="#00f5ff";
-ctxP.fill();
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+ctx.fillStyle="#00f5ff";
+ctx.shadowBlur=10;
+ctx.shadowColor="#00f5ff";
+ctx.fill();
 });
-requestAnimationFrame(animateParticles);
+requestAnimationFrame(anim);
 }
-animateParticles();
-
-/* BGM */
-function toggleBGM(){
-const bgm=document.getElementById("bgm");
-if(bgm.paused){bgm.play();}
-else{bgm.pause();}
-}
+anim();
