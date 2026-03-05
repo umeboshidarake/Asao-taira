@@ -156,6 +156,7 @@ inset:0;
 background:black;
 padding:40px;
 z-index:3000;
+overflow:auto;
 display:none;
 }
 
@@ -414,6 +415,7 @@ if(data.money<cost) return;
 
 data.money-=cost;
 stock.owned+=amount;
+stock.buyPrice = stock.price;
 data.totalBuys++;
 
 updateUI();
@@ -425,12 +427,17 @@ const stock=data.stocks[i];
 
 if(stock.owned<amount) return;
 
-const income=stock.price*amount;
+const sellPrice = stock.price;
+const buyPrice = stock.buyPrice || stock.price;
 
-data.money+=income;
+const profit = (sellPrice - buyPrice) * amount;
 
-const mintGain=Math.floor(income*0.1);
-data.mint+=mintGain;
+data.money += sellPrice * amount;
+
+if(profit > 0){
+    const mintGain = Math.floor(profit / 10);
+    data.mint += mintGain;
+}
 
 stock.owned-=amount;
 
@@ -566,20 +573,20 @@ legend.appendChild(item);
 const achievements=[
 
 {name:"初投資",desc:"株を1回買う",check:()=>data.totalBuys>=1},
-{name:"トレーダー",desc:"10回購入",check:()=>data.totalBuys>=10},
-{name:"投資家",desc:"50回購入",check:()=>data.totalBuys>=50},
-{name:"資産家",desc:"20000G",check:()=>data.money>=20000},
-{name:"大富豪",desc:"100000G",check:()=>data.money>=100000},
+{name:"トレーダー",desc:"100回購入",check:()=>data.totalBuys>=100},
+{name:"投資家",desc:"500回購入",check:()=>data.totalBuys>=500},
+{name:"資産家",desc:"2000000G",check:()=>data.money>=2000000},
+{name:"大富豪",desc:"1000000000G",check:()=>data.money>=1000000000},
 {name:"株コレクター",desc:"100株",check:()=>data.stocks.some(s=>s.owned>=100)},
 {name:"宇宙投資家",desc:"全株解放",check:()=>data.stocks.every(s=>s.unlocked)},
 {name:"ミント収集家",desc:"100ミント",check:()=>data.mint>=100},
-{name:"ミント王",desc:"1000ミント",check:()=>data.mint>=1000},
-{name:"伝説トレーダー",desc:"100万G",check:()=>data.money>=1000000},
+{name:"ミント王",desc:"10000ミント",check:()=>data.mint>=10000},
+{name:"伝説トレーダー",desc:"10000000000G",check:()=>data.money>=10000000000},
 
 {name:"ブラックホール",hidden:true,check:()=>data.money<0},
 {name:"ギャンブラー",hidden:true,check:()=>data.totalBuys>=500},
-{name:"ミント神",hidden:true,check:()=>data.mint>=5000},
-{name:"宇宙覇者",hidden:true,check:()=>data.money>=10000000},
+{name:"ミント神",hidden:true,check:()=>data.mint>=50000},
+{name:"宇宙覇者",hidden:true,check:()=>data.money>=1000000000000},
 {name:"株マスター",hidden:true,check:()=>data.stocks.every(s=>s.owned>0)}
 
 ];
@@ -654,16 +661,51 @@ function closeGacha(){
 document.getElementById("gachaScreen").style.display="none";
 }
 
-function spinGacha(){
+const mintTable = [
+{name:"青ミント",rate:40},
+{name:"赤ミント",rate:25},
+{name:"緑ミント",rate:15},
+{name:"紫ミント",rate:10},
+{name:"金ミント",rate:7},
+{name:"宇宙ミント",rate:2},
+{name:"ブラックホールミント",rate:1}
+];
+    
+function gacha(){
 
-if(data.mint<50){
-alert("ミント不足");
+if(data.mint < 50){
+alert("ミントが足りません");
 return;
 }
 
-data.mint-=50;
+data.mint -= 50;
 
-const mints=["青ミント","赤ミント","金ミント","宇宙ミント"];
+let rand = Math.random() * 100;
+let total = 0;
+let result = "";
+
+for(let mint of mintTable){
+
+total += mint.rate;
+
+if(rand <= total){
+result = mint.name;
+break;
+}
+
+}
+
+if(!data.mintInventory[result]){
+data.mintInventory[result] = 0;
+}
+
+data.mintInventory[result]++;
+
+alert("🎉 " + result + " を獲得！");
+
+updateUI();
+
+}
 
 const result=mints[Math.floor(Math.random()*mints.length)];
 
@@ -699,6 +741,24 @@ list.appendChild(div);
 function closeMint(){
 document.getElementById("mintScreen").style.display="none";
 }
+    
+window.addEventListener("load",()=>{
+
+if(data.nickname){
+
+document.getElementById("nicknameScreen").style.display="none";
+document.getElementById("game").style.display="block";
+
+document.getElementById("playerName").innerText=data.nickname;
+
+updateUI();
+
+setInterval(updateTimer,1000);
+checkPriceUpdate();
+
+}
+
+});
 </script>
     
 <div id="achievementScreen" style="display:none;">
