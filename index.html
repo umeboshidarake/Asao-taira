@@ -5,388 +5,324 @@
 <title>SPACE STOCK</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
 <style>
+
 body{
-    margin:0;
-    font-family:'Orbitron',sans-serif;
-    background: radial-gradient(circle at top,#140a2a,#000);
-    color:white;
+margin:0;
+font-family:'Orbitron',sans-serif;
+background: radial-gradient(circle at top,#140a2a,#000);
+color:white;
+overflow-x:hidden;
 }
 
-#game{ padding:20px; }
-
 h1{
-    text-align:center;
-    font-size:40px;
-    color:#e9d5ff;
-    text-shadow:0 0 25px #a855f7, 0 0 50px #7e22ce;
+text-align:center;
+font-size:40px;
+color:#e9d5ff;
+text-shadow:0 0 25px #a855f7,0 0 50px #7e22ce;
+}
+
+#game{
+padding:20px;
+}
+
+#stocks{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
 }
 
 .card{
-    background:rgba(255,255,255,0.05);
-    border:1px solid #a855f7;
-    padding:15px;
-    margin:10px;
-    border-radius:15px;
-    box-shadow:0 0 20px rgba(168,85,247,0.5);
-    transition:0.3s;
-    position:relative;
+background:rgba(255,255,255,0.05);
+border:1px solid #a855f7;
+padding:15px;
+margin:10px;
+border-radius:15px;
+box-shadow:0 0 20px rgba(168,85,247,0.5);
+transition:0.3s;
+position:relative;
 }
 
 .card:hover{
-    transform:scale(1.05);
-    box-shadow:0 0 35px #a855f7;
+transform:scale(1.05);
+box-shadow:0 0 35px #a855f7;
 }
 
 button{
-    background:black;
-    border:1px solid #a855f7;
-    color:#c084fc;
-    padding:5px 10px;
-    margin:3px;
-    cursor:pointer;
-    transition:0.3s;
+background:black;
+border:1px solid #a855f7;
+color:#c084fc;
+padding:6px 12px;
+margin:3px;
+cursor:pointer;
+transition:0.3s;
 }
 
 button:hover{
-    background:#a855f7;
-    color:black;
-    box-shadow:0 0 15px #a855f7;
+background:#a855f7;
+color:black;
+box-shadow:0 0 15px #a855f7;
 }
+
 .unlockBtn{
-    animation:unlockGlow 1.5s infinite alternate;
+animation:unlockGlow 1.5s infinite alternate;
 }
 
 @keyframes unlockGlow{
-    from{
-        box-shadow:0 0 5px #a855f7;
-    }
-    to{
-        box-shadow:0 0 20px #a855f7;
-    }
+from{box-shadow:0 0 5px #a855f7;}
+to{box-shadow:0 0 25px #a855f7;}
 }
 
-.locked{ opacity:0.3; }
-
-#stocks{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+.locked{
+opacity:0.3;
 }
 
 canvas{
-    background:black;
-    border:none;
-    margin-top:10px;
-}
-
-#nicknameScreen{
-    position:fixed;
-    inset:0;
-    background:black;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
-}
-
-input{
-    padding:10px;
-    font-size:18px;
-    background:black;
-    border:1px solid #a855f7;
-    color:white;
-}
-
-.flavor{
-    position:absolute;
-    background:rgba(20,0,40,0.95);
-    border:1px solid #a855f7;
-    padding:10px;
-    border-radius:10px;
-    box-shadow:0 0 20px #7e22ce;
-    display:none;
-    width:200px;
-    z-index:100;
-    top:10px;
-    right:10px;
-}
-
-#bgCanvas{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100vw;
-    height:100vh;
-    z-index:-999;
-    pointer-events:none;
+background:black;
+border:none;
+margin-top:10px;
 }
 
 #allGraph{
-    width:100%;
-    background:black;
-    border:none;
-    margin-bottom:20px;
+width:100%;
+height:300px;
 }
 
-@media (max-width: 600px){
-    h1{
-        font-size:24px;
-    }
-
-    #stocks{
-        grid-template-columns:1fr;
-    }
-
-    canvas{
-        width:100%;
-        height:120px;
-    }
-
-    button{
-        font-size:12px;
-        padding:4px;
-    }
-}
-
-#tooltip{
-    position:fixed;
-    background:rgba(20,0,40,0.95);
-    border:1px solid #a855f7;
-    padding:8px;
-    color:#e9d5ff;
-    font-size:14px;
-    pointer-events:none;
-    display:none;
-    z-index:1000;
-    box-shadow:0 0 20px #7e22ce;
-}
 #legend{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    margin-bottom:20px;
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+margin-bottom:20px;
 }
 
 .legend-item{
-    cursor:pointer;
-    padding:5px 10px;
-    border:1px solid #a855f7;
-    color:#c084fc;
-    border-radius:5px;
-    font-size:14px;
-    transition:0.3s;
+cursor:pointer;
+padding:5px 10px;
+border:1px solid #a855f7;
+color:#c084fc;
+border-radius:5px;
+font-size:14px;
 }
 
 .legend-item:hover{
-    background:#7e22ce;
-    color:white;
+background:#7e22ce;
+color:white;
 }
- #achievementScreen{
-    position:fixed;
-    inset:0;
-    background:black;
-    padding:40px;
-    z-index:3000;
+
+#tooltip{
+position:fixed;
+background:rgba(20,0,40,0.95);
+border:1px solid #a855f7;
+padding:8px;
+color:#e9d5ff;
+font-size:14px;
+pointer-events:none;
+display:none;
+z-index:1000;
+box-shadow:0 0 20px #7e22ce;
+}
+
+#nicknameScreen{
+position:fixed;
+inset:0;
+background:black;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+}
+
+input{
+padding:10px;
+font-size:18px;
+background:black;
+border:1px solid #a855f7;
+color:white;
+}
+
+#bgCanvas{
+position:fixed;
+top:0;
+left:0;
+width:100vw;
+height:100vh;
+z-index:-999;
+pointer-events:none;
+}
+
+#achievementScreen{
+position:fixed;
+inset:0;
+background:black;
+padding:40px;
+z-index:3000;
+display:none;
 }
 
 .achievement{
-    border:1px solid #a855f7;
-    padding:10px;
-    margin:10px;
-    border-radius:10px;
+border:1px solid #a855f7;
+padding:10px;
+margin:10px;
+border-radius:10px;
 }
+
 #achievementPopup{
-    position:fixed;
-    bottom:20px;
-    right:20px;
-    background:#7e22ce;
-    padding:15px;
-    border-radius:10px;
-    display:none;
-    box-shadow:0 0 20px #a855f7;
+position:fixed;
+bottom:20px;
+right:20px;
+background:#7e22ce;
+padding:15px;
+border-radius:10px;
+display:none;
+box-shadow:0 0 20px #a855f7;
 }
+
+#gachaScreen{
+position:fixed;
+inset:0;
+background:black;
+display:none;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+z-index:4000;
+}
+
+#gachaResult{
+font-size:40px;
+margin:20px;
+text-shadow:0 0 20px #a855f7;
+}
+
+#mintScreen{
+position:fixed;
+inset:0;
+background:black;
+display:none;
+padding:40px;
+z-index:4000;
+}
+
+.mintItem{
+border:1px solid #a855f7;
+padding:10px;
+margin:10px;
+border-radius:10px;
+}
+
 </style>
 </head>
-<body>    
+
+<body>
+
 <canvas id="bgCanvas"></canvas>
-    
+
 <div id="nicknameScreen">
-    <h1>SPACE STOCK</h1>
-    <p>ニックネームを入力</p>
-    <input id="nicknameInput">
-    <button onclick="startGame()">START</button>
+<h1>SPACE STOCK</h1>
+<p>ニックネームを入力</p>
+<input id="nicknameInput">
+<button onclick="startGame()">START</button>
 </div>
 
 <div id="game" style="display:none;">
-    <h1>SPACE STOCK MARKET</h1>
-    <button onclick="openAchievements()">🏆 実績</button>
-    <button onclick="openMint()">💎 ミント</button>
-    <p>👤 <span id="playerName"></span></p>
-    <p>💰 所持金: <span id="money"></span>G</p>
-    <p>⭐ ポイント: <span id="points"></span></p>
-    <p>💎 ミント: <span id="mint"></span></p>
-    <p>⏳ 次の変動まで: <span id="timer"></span></p>
-    <h2>📊 全銘柄グラフ</h2>
-<canvas id="allGraph" height="300"></canvas>
-    <div id="legend"></div>
-    <div id="stocks"></div>
+
+<h1>SPACE STOCK MARKET</h1>
+
+<button onclick="openAchievements()">🏆 実績</button>
+<button onclick="openGacha()">🎰 ガチャ</button>
+<button onclick="openMint()">💎 ミント</button>
+
+<p>👤 <span id="playerName"></span></p>
+<p>💰 所持金: <span id="money"></span>G</p>
+<p>⭐ ポイント: <span id="points"></span></p>
+<p>💎 ミント: <span id="mint"></span></p>
+<p>⏳ 次の変動まで: <span id="timer"></span></p>
+
+<h2>📊 全銘柄グラフ</h2>
+
+<canvas id="allGraph"></canvas>
+
+<div id="legend"></div>
+<div id="stocks"></div>
+
+</div>
+
+<div id="tooltip"></div>
+
+<div id="achievementPopup"></div>
+
+<div id="achievementScreen">
+<h2>🏆 実績</h2>
+<div id="achievementList"></div>
+<button onclick="closeAchievements()">閉じる</button>
+</div>
+
+<div id="gachaScreen">
+<h2>🎰 SPACE GACHA</h2>
+<div id="gachaResult">READY</div>
+<button onclick="spinGacha()">回す (50ミント)</button>
+<button onclick="closeGacha()">閉じる</button>
+</div>
+
+<div id="mintScreen">
+<h2>💎 ミントコレクション</h2>
+<div id="mintList"></div>
+<button onclick="closeMint()">閉じる</button>
 </div>
 
 <script>
-window.onload = function(){
-
-    const bgCanvas = document.getElementById("bgCanvas");
-    const bgCtx = bgCanvas.getContext("2d");
-
-    function resize(){
-        bgCanvas.width = window.innerWidth;
-        bgCanvas.height = window.innerHeight;
-    }
-
-    resize();
-    window.addEventListener("resize", resize);
-
-    let stars = [];
-
-    for(let i=0;i<150;i++){
-        stars.push({
-            x:Math.random()*bgCanvas.width,
-            y:Math.random()*bgCanvas.height,
-            size:Math.random()*2,
-            speed:Math.random()*0.5+0.2
-        });
-    }
-
-    function animateStars(){
-        bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
-        bgCtx.fillStyle="white";
-
-        stars.forEach(star=>{
-            star.y+=star.speed;
-            if(star.y>bgCanvas.height){
-                star.y=0;
-                star.x=Math.random()*bgCanvas.width;
-            }
-            bgCtx.beginPath();
-            bgCtx.arc(star.x,star.y,star.size,0,Math.PI*2);
-            bgCtx.fill();
-        });
-
-        requestAnimationFrame(animateStars);
-    }
-
-    animateStars();
-const graphCanvas=document.getElementById("allGraph");
-
-graphCanvas.onmousemove=(e)=>{
-
-const rect=graphCanvas.getBoundingClientRect();
-const x=e.clientX-rect.left;
-
-const index=Math.floor((x/graphCanvas.width)*data.stocks[0].history.length);
-
-let text="";
-
-data.stocks.forEach(stock=>{
-if(stock.history[index]){
-text+=stock.name+" "+stock.history[index]+"G\n";
-}
-});
-
-const tooltip=document.getElementById("tooltip");
-
-tooltip.style.display="block";
-tooltip.style.left=e.clientX+"px";
-tooltip.style.top=e.clientY+"px";
-tooltip.innerText=text;
-
-};
-
-graphCanvas.onmouseleave=()=>{
-document.getElementById("tooltip").style.display="none";
-};
-};
 let audioCtx;
 let bgmOscillators=[];
+
 let data = JSON.parse(localStorage.getItem("spaceStockData")) || null;
 
 if(!data){
-    data={
-        nickname:"",
-        money:10000,
-        points:0,
-        mint:0,
-        mintInventory:{},  
-        stocks:[],
-        lastUpdate:Date.now()
-    };
+data={
+nickname:"",
+money:10000,
+points:0,
+mint:0,
+mintInventory:{},
+stocks:[],
+lastUpdate:Date.now(),
+totalBuys:0,
+achievementsUnlocked:[]
+};
 
-    const personalities=[
-        "安定志向の巨大企業。市場の守護者。",
-        "乱高下する危険銘柄。ハイリスク。",
-        "急成長中の宇宙スタートアップ。",
-        "衰退気味の老舗企業。",
-        "バブル気味の話題株。",
-        "AI制御の未来企業。",
-        "異星資源開発会社。",
-        "量子技術ベンチャー。",
-        "エネルギー革命銘柄。",
-        "未来医療テック企業。"
-    ];
+const personalities=[
+"安定志向の巨大企業。市場の守護者。",
+"乱高下する危険銘柄。ハイリスク。",
+"急成長中の宇宙スタートアップ。",
+"衰退気味の老舗企業。",
+"バブル気味の話題株。",
+"AI制御の未来企業。",
+"異星資源開発会社。",
+"量子技術ベンチャー。",
+"エネルギー革命銘柄。",
+"未来医療テック企業。"
+];
 
-    const types=["stable","volatile","growth","decline","bubble","volatile","growth","stable","growth","stable"];
+const types=["stable","volatile","growth","decline","bubble","volatile","growth","stable","growth","stable"];
 
-    for(let i=0;i<10;i++){
-        data.stocks.push({
-            name:"STOCK-"+(i+1),
-            price:Math.floor(Math.random()*500)+500,
-            owned:0,
-            unlocked:i<3,
-            personality:personalities[i],
-            personalityType:types[i],
-            history:[100],
-            canSell:true,
-            visible:true
-        });
-    }
+for(let i=0;i<10;i++){
+data.stocks.push({
+name:"STOCK-"+(i+1),
+price:Math.floor(Math.random()*500)+500,
+owned:0,
+unlocked:i<3,
+personality:personalities[i],
+personalityType:types[i],
+history:[500],
+canSell:true,
+visible:true
+});
+}
+
+save();
 }
 
 function save(){
-    localStorage.setItem("spaceStockData",JSON.stringify(data));
-}
-
-function initAudio(){
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    startBGM();
-}
-
-function playBuySound(){
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type="sawtooth";
-    osc.frequency.value=600;
-    gain.gain.value=0.1;
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.frequency.exponentialRampToValueAtTime(200,audioCtx.currentTime+0.2);
-    osc.stop(audioCtx.currentTime+0.2);
-}
-
-function startBGM(){
-    const notes=[110,220,165];
-    notes.forEach(freq=>{
-        const osc=audioCtx.createOscillator();
-        const gain=audioCtx.createGain();
-        osc.type="sine";
-        osc.frequency.value=freq;
-        gain.gain.value=0.02;
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        bgmOscillators.push(osc);
-    });
+localStorage.setItem("spaceStockData",JSON.stringify(data));
 }
 
 function startGame(){
@@ -401,319 +337,268 @@ if(name.trim()=="") return;
 
 data.nickname=name;
 
-initAudio();
-save();
-init();
-}
+document.getElementById("nicknameScreen").style.display="none";
+document.getElementById("game").style.display="block";
 
-function init(){
-    document.getElementById("nicknameScreen").style.display="none";
-    document.getElementById("game").style.display="block";
-    document.getElementById("playerName").innerText=data.nickname;
-    updateUI();
-    setInterval(updateTimer,1000);
-    checkPriceUpdate();
+document.getElementById("playerName").innerText=data.nickname;
+
+updateUI();
+
+setInterval(updateTimer,1000);
+checkPriceUpdate();
 }
 
 function updateUI(){
-    document.getElementById("money").innerText=data.money;
-    document.getElementById("points").innerText=data.points;
-    document.getElementById("mint").innerText=data.mint;
-    const stocksDiv=document.getElementById("stocks");
-    stocksDiv.innerHTML="";
 
-    data.stocks.forEach((stock,i)=>{
-        const card=document.createElement("div");
-        card.className="card"+(stock.unlocked?"":" locked");
+document.getElementById("money").innerText=data.money;
+document.getElementById("points").innerText=data.points;
+document.getElementById("mint").innerText=data.mint;
 
-        card.innerHTML=`
-            <h3>${stock.name}</h3>
-            <p>価格: ${stock.price}G</p>
-            <p>保有: ${stock.owned}</p>
-        `;
-        card.onmousemove = (e) => {
-    const tooltip = document.getElementById("tooltip");
-    tooltip.style.display = "block";
-    tooltip.style.left = e.clientX + 15 + "px";
-    tooltip.style.top = e.clientY + 15 + "px";
-    tooltip.innerText = stock.personality;
-};
+const stocksDiv=document.getElementById("stocks");
+stocksDiv.innerHTML="";
 
-card.onmouseleave = () => {
-    document.getElementById("tooltip").style.display = "none";
-};
+data.stocks.forEach((stock,i)=>{
 
-        if(stock.unlocked){
-            [1,10,100].forEach(n=>{
-                const btn=document.createElement("button");
-                btn.innerText=n+"株買う";
-                btn.onclick=()=>buyStock(i,n);
-                card.appendChild(btn);
-            });
+const card=document.createElement("div");
+card.className="card"+(stock.unlocked?"":" locked");
 
-            [1,10,100].forEach(n=>{
-    const sellBtn=document.createElement("button");
-    sellBtn.innerText=n+"株売る";
-    sellBtn.onclick=()=>sellStock(i,n);
-    if(!stock.canSell || stock.owned<n) sellBtn.disabled=true;
-    card.appendChild(sellBtn);
+card.innerHTML=`
+<h3>${stock.name}</h3>
+<p>価格: ${stock.price}G</p>
+<p>保有: ${stock.owned}</p>
+`;
+
+if(stock.unlocked){
+
+[1,10,100].forEach(n=>{
+const btn=document.createElement("button");
+btn.innerText=n+"株買う";
+btn.onclick=()=>buyStock(i,n);
+card.appendChild(btn);
 });
-        }else{
-           const unlockBtn=document.createElement("button");
-            unlockBtn.className="unlockBtn";
-            unlockBtn.innerText="500Pで解放";
-            unlockBtn.onclick=()=>unlockStock(i);
-            card.appendChild(unlockBtn);
-        }
 
-        stocksDiv.appendChild(card);
-    });
+[1,10,100].forEach(n=>{
+const btn=document.createElement("button");
+btn.innerText=n+"株売る";
+btn.onclick=()=>sellStock(i,n);
+if(stock.owned<n) btn.disabled=true;
+card.appendChild(btn);
+});
 
-    save();
-    drawAllGraph();
-    drawLegend();
-    drawAllGraph();
+}else{
+
+const unlockBtn=document.createElement("button");
+unlockBtn.className="unlockBtn";
+unlockBtn.innerText="500Pで解放";
+unlockBtn.onclick=()=>unlockStock(i);
+card.appendChild(unlockBtn);
+
+}
+
+stocksDiv.appendChild(card);
+
+});
+
+drawAllGraph();
+drawLegend();
+checkAchievements();
+save();
 }
 
 function buyStock(i,amount){
-    data.totalBuys=(data.totalBuys||0)+1;
-    const stock=data.stocks[i];
-    const cost=stock.price*amount;
 
-    if(data.money < cost) return;
+const stock=data.stocks[i];
+const cost=stock.price*amount;
 
-    data.money -= cost;
-    stock.owned += amount;
-    stock.canSell = false;
+if(data.money<cost) return;
 
-    // 安全チェック付き
-    if(audioCtx){
-        playBuySound();
-    }
+data.money-=cost;
+stock.owned+=amount;
+data.totalBuys++;
 
-    updateUI();
+updateUI();
 }
 
 function sellStock(i,amount){
-    const stock=data.stocks[i];
 
-    if(!stock.canSell) return;
+const stock=data.stocks[i];
 
-    if(stock.owned>=amount){
+if(stock.owned<amount) return;
 
-        const income = stock.price * amount;
+const income=stock.price*amount;
 
-        data.money += income;
+data.money+=income;
 
-        // ⭐ 利益ミント
-        const mintGain = Math.floor(income * 0.1);
-        data.mint += mintGain;
+const mintGain=Math.floor(income*0.1);
+data.mint+=mintGain;
 
-        stock.owned -= amount;
+stock.owned-=amount;
 
-        updateUI();
-    }
+updateUI();
 }
-    
+
 function unlockStock(i){
-    if(data.points>=500){
-        data.points-=500;
-        data.stocks[i].unlocked=true;
-        updateUI();
-    }
+
+if(data.points>=500){
+
+data.points-=500;
+data.stocks[i].unlocked=true;
+
+updateUI();
+
+}
+
 }
 
 function checkPriceUpdate(){
-    const now=Date.now();
-    if(now-data.lastUpdate>=60000){
-        updatePrices();
-        data.lastUpdate=now;
-    }
-    setTimeout(checkPriceUpdate,10000);
+
+const now=Date.now();
+
+if(now-data.lastUpdate>=60000){
+
+updatePrices();
+data.lastUpdate=now;
+
+}
+
+setTimeout(checkPriceUpdate,10000);
+
 }
 
 function updatePrices(){
-    data.stocks.forEach(stock=>{
-        let change=0;
-        switch(stock.personalityType){
-            case "stable": change=(Math.random()-0.5)*20; break;
-            case "volatile": change=(Math.random()-0.5)*300; break;
-            case "growth": change=Math.random()*50; break;
-            case "decline": change=-(Math.random()*50); break;
-            case "bubble":
-                change=Math.random()<0.2?(Math.random()-0.5)*600:Math.random()*80;
-                break;
-            default: change=(Math.random()-0.5)*100;
-        }
-        stock.price=Math.max(10,Math.floor(stock.price+change));
-        stock.history.push(stock.price);
-        if(stock.history.length>20) stock.history.shift();
-        stock.canSell=true;
-    });
-    data.points+=100;
-    updateUI();
+
+data.stocks.forEach(stock=>{
+
+let change=(Math.random()-0.5)*100;
+
+stock.price=Math.max(10,Math.floor(stock.price+change));
+
+stock.history.push(stock.price);
+
+if(stock.history.length>30) stock.history.shift();
+
+});
+
+data.points+=100;
+
+updateUI();
+
 }
 
 function updateTimer(){
-    const remain=60000-(Date.now()-data.lastUpdate);
-    const sec=Math.max(0,Math.floor(remain/1000));
-    document.getElementById("timer").innerText=sec+"秒";
-}
 
-function drawGraph(canvas,dataArr){
-    const ctx = canvas.getContext("2d");
-    const width = canvas.width;
-    const height = canvas.height;
+const remain=60000-(Date.now()-data.lastUpdate);
 
-    ctx.clearRect(0,0,width,height);
+const sec=Math.max(0,Math.floor(remain/1000));
 
-    ctx.strokeStyle = "cyan";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
+document.getElementById("timer").innerText=sec+"秒";
 
-    // データがない場合は真ん中に線
-    if(dataArr.length === 0){
-        ctx.moveTo(0,height/2);
-        ctx.lineTo(width,height/2);
-        ctx.stroke();
-        return;
-    }
-
-    const max = Math.max(...dataArr);
-    const min = Math.min(...dataArr);
-
-    dataArr.forEach((v,i)=>{
-        const x = (i / (dataArr.length - 1 || 1)) * width;
-        const y = height - ((v - min) / (max - min || 1)) * height;
-
-        if(i === 0){
-            ctx.moveTo(x,y);
-        }else{
-            ctx.lineTo(x,y);
-        }
-    });
-
-    ctx.stroke();
 }
 
 function drawAllGraph(){
-    const canvas = document.getElementById("allGraph");
-    const ctx = canvas.getContext("2d");
 
-    canvas.width = canvas.clientWidth;
-    canvas.height = 300;
+const canvas=document.getElementById("allGraph");
+const ctx=canvas.getContext("2d");
 
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+canvas.width=canvas.clientWidth;
+canvas.height=300;
 
-    const colors = [
-        "cyan","lime","yellow","orange","red",
-        "magenta","white","blue","pink","lightgreen"
-    ];
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    data.stocks.forEach((stock,index)=>{
-
-         if(!stock.visible) return; 
-
-        if(stock.history.length < 2) return;
-
-        const max = Math.max(...stock.history);
-        const min = Math.min(...stock.history);
-
-        ctx.beginPath();
-        ctx.strokeStyle = colors[index % colors.length];
-        ctx.lineWidth = 2;
-
-        stock.history.forEach((price,i)=>{
-            const x = (i/(stock.history.length-1)) * canvas.width;
-            const y = canvas.height - ((price-min)/(max-min||1))*canvas.height;
-
-            if(i===0) ctx.moveTo(x,y);
-            else ctx.lineTo(x,y);
-        });
-
-        ctx.stroke();
-    });
-}
-
-graphCanvas.onmousemove=(e)=>{
-
-    const rect=graphCanvas.getBoundingClientRect();
-    const x=e.clientX-rect.left;
-
-    const index=Math.floor((x/graphCanvas.width)*data.stocks[0].history.length);
-
-    let text="";
-
-    data.stocks.forEach(stock=>{
-        if(stock.history[index]){
-            text+=stock.name+" "+stock.history[index]+"G\n";
-        }
-    });
-
-    const tooltip=document.getElementById("tooltip");
-
-    tooltip.style.display="block";
-    tooltip.style.left=e.clientX+"px";
-    tooltip.style.top=e.clientY+"px";
-    tooltip.innerText=text;
-};
-    
-function drawLegend(){
-    const legend = document.getElementById("legend");
-    legend.innerHTML = "";
-
-    const colors = [
-        "#a855f7",
-        "#c084fc",
-        "#9333ea",
-        "#d946ef",
-        "#8b5cf6",
-        "#7e22ce",
-        "#e879f9",
-        "#a78bfa",
-        "#6d28d9",
-        "#c026d3"
-    ];
-
-    data.stocks.forEach((stock,index)=>{
-        const item = document.createElement("div");
-        item.className="legend-item";
-        item.style.borderColor = colors[index];
-        item.style.color = colors[index];
-        item.innerText = stock.name;
-
-        // クリックで表示/非表示切替
-        item.onclick = ()=>{
-            stock.visible = !stock.visible;
-            updateUI();
-        };
-
-        // 非表示なら少し透明に
-        if(!stock.visible){
-            item.style.opacity = 0.3;
-        }
-
-        legend.appendChild(item);
-    });
-}
-const achievements=[
-{ name:"初投資",desc:"株購入",check:()=>data.totalBuys>=1},
-{ name:"トレーダー",desc:"10回購入",check:()=>data.totalBuys>=10},
-{ name:"投資家",desc:"50回購入",check:()=>data.totalBuys>=50},
-{ name:"資産家",desc:"20000G",check:()=>data.money>=20000},
-{ name:"大富豪",desc:"100000G",check:()=>data.money>=100000},
-{ name:"株コレクター",desc:"100株",check:()=>data.stocks.some(s=>s.owned>=100)},
-{ name:"宇宙投資家",desc:"全株解放",check:()=>data.stocks.every(s=>s.unlocked)},
-{ name:"ミント収集家",desc:"100ミント",check:()=>data.mint>=100},
-{ name:"ミント王",desc:"1000ミント",check:()=>data.mint>=1000},
-{ name:"伝説トレーダー",desc:"1M G",check:()=>data.money>=1000000},
-
-{ name:"ブラックホール",hidden:true,check:()=>data.money<0},
-{ name:"ギャンブラー",hidden:true,check:()=>data.totalBuys>=500},
-{ name:"ミント神",hidden:true,check:()=>data.mint>=5000},
-{ name:"宇宙覇者",hidden:true,check:()=>data.money>=10000000},
-{ name:"株マスター",hidden:true,check:()=>data.stocks.every(s=>s.owned>0)}
+const colors=[
+"cyan","lime","yellow","orange","red",
+"magenta","white","blue","pink","lightgreen"
 ];
+
+data.stocks.forEach((stock,index)=>{
+
+if(!stock.visible) return;
+
+if(stock.history.length<2) return;
+
+const max=Math.max(...stock.history);
+const min=Math.min(...stock.history);
+
+ctx.beginPath();
+ctx.strokeStyle=colors[index];
+ctx.lineWidth=2;
+
+stock.history.forEach((price,i)=>{
+
+const x=(i/(stock.history.length-1))*canvas.width;
+
+const y=canvas.height-((price-min)/(max-min||1))*canvas.height;
+
+if(i==0) ctx.moveTo(x,y);
+else ctx.lineTo(x,y);
+
+});
+
+ctx.stroke();
+
+});
+
+}
+
+function drawLegend(){
+
+const legend=document.getElementById("legend");
+legend.innerHTML="";
+
+data.stocks.forEach((stock,i)=>{
+
+const item=document.createElement("div");
+
+item.className="legend-item";
+item.innerText=stock.name;
+
+item.onclick=()=>{
+stock.visible=!stock.visible;
+updateUI();
+};
+
+legend.appendChild(item);
+
+});
+
+}
+
+const achievements=[
+
+{name:"初投資",desc:"株を1回買う",check:()=>data.totalBuys>=1},
+{name:"トレーダー",desc:"10回購入",check:()=>data.totalBuys>=10},
+{name:"投資家",desc:"50回購入",check:()=>data.totalBuys>=50},
+{name:"資産家",desc:"20000G",check:()=>data.money>=20000},
+{name:"大富豪",desc:"100000G",check:()=>data.money>=100000},
+{name:"株コレクター",desc:"100株",check:()=>data.stocks.some(s=>s.owned>=100)},
+{name:"宇宙投資家",desc:"全株解放",check:()=>data.stocks.every(s=>s.unlocked)},
+{name:"ミント収集家",desc:"100ミント",check:()=>data.mint>=100},
+{name:"ミント王",desc:"1000ミント",check:()=>data.mint>=1000},
+{name:"伝説トレーダー",desc:"100万G",check:()=>data.money>=1000000},
+
+{name:"ブラックホール",hidden:true,check:()=>data.money<0},
+{name:"ギャンブラー",hidden:true,check:()=>data.totalBuys>=500},
+{name:"ミント神",hidden:true,check:()=>data.mint>=5000},
+{name:"宇宙覇者",hidden:true,check:()=>data.money>=10000000},
+{name:"株マスター",hidden:true,check:()=>data.stocks.every(s=>s.owned>0)}
+
+];
+
+function checkAchievements(){
+
+achievements.forEach((a,i)=>{
+
+if(a.check() && !data.achievementsUnlocked.includes(i)){
+
+data.achievementsUnlocked.push(i);
+
+showAchievement(a.name);
+
+}
+
+});
+
+}
 
 function openAchievements(){
 
@@ -722,20 +607,25 @@ document.getElementById("achievementScreen").style.display="block";
 const list=document.getElementById("achievementList");
 list.innerHTML="";
 
-achievements.forEach(a=>{
+achievements.forEach((a,i)=>{
 
 const div=document.createElement("div");
 div.className="achievement";
 
-if(a.check()){
+if(data.achievementsUnlocked.includes(i)){
+
 div.innerText=a.name+" - "+a.desc;
+
 }else{
+
 div.innerText="？？？？？？？？";
+
 }
 
 list.appendChild(div);
 
 });
+
 }
 
 function closeAchievements(){
@@ -756,7 +646,15 @@ popup.style.display="none";
 
 }
 
-function gacha(){
+function openGacha(){
+document.getElementById("gachaScreen").style.display="flex";
+}
+
+function closeGacha(){
+document.getElementById("gachaScreen").style.display="none";
+}
+
+function spinGacha(){
 
 if(data.mint<50){
 alert("ミント不足");
@@ -773,23 +671,33 @@ if(!data.mintInventory[result]) data.mintInventory[result]=0;
 
 data.mintInventory[result]++;
 
-alert("🎉 "+result+" を獲得");
+document.getElementById("gachaResult").innerText=result;
 
 updateUI();
+
 }
 
 function openMint(){
 
-let text="所持ミント\n";
+document.getElementById("mintScreen").style.display="block";
+
+const list=document.getElementById("mintList");
+list.innerHTML="";
 
 for(let m in data.mintInventory){
 
-text+=m+" : "+data.mintInventory[m]+"\n";
+const div=document.createElement("div");
+div.className="mintItem";
+div.innerText=m+" : "+data.mintInventory[m];
+
+list.appendChild(div);
 
 }
 
-alert(text);
+}
 
+function closeMint(){
+document.getElementById("mintScreen").style.display="none";
 }
 </script>
     
@@ -802,4 +710,4 @@ alert(text);
  <div id="tooltip"></div> 
 <div id="achievementPopup"></div>
 </body>
-</html>
+</html>　
