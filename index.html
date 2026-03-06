@@ -48,11 +48,11 @@ select { background: black; color: white; border: 1px solid #a855f7; padding: 10
 
 <body>
 
-<div id="nicknameScreen" style="position:fixed;inset:0;background:black;display:flex;justify-content:center;align-items:center;flex-direction:column;z-index:9999;">
-<h1>SPACE STOCK</h1>
-<p>ニックネームを入力</p>
-<input id="nicknameInput" placeholder="名無しトレーダー" style="padding:10px;font-size:18px;background:black;border:1px solid #a855f7;color:white;margin-bottom:20px;">
-<button onclick="startGame()" style="padding:10px 30px;font-size:18px;">START</button>
+<div id="nicknameScreen" style="position:fixed;inset:0;background:radial-gradient(circle at center, #1f0b3b, #000);display:flex;justify-content:center;align-items:center;flex-direction:column;z-index:9999;">
+    <h1 style="font-size:50px; margin-bottom:10px; text-shadow: 0 0 30px #a855f7;">SPACE STOCK</h1>
+    <p style="color:#c084fc; font-size:18px; margin-bottom:40px;">ニックネームを入力して市場へ</p>
+    <input id="nicknameInput" placeholder="名無しトレーダー" style="padding:15px; font-size:20px; background:rgba(0,0,0,0.5); border:2px solid #a855f7; border-radius:10px; color:white; margin-bottom:30px; width:280px; text-align:center; box-shadow:inset 0 0 10px rgba(168,85,247,0.3); outline:none;">
+    <button class="menu-btn" onclick="startGame()" style="padding:15px 50px; font-size:22px; border-radius:50px; width:auto; justify-content:center; box-shadow: 0 0 20px rgba(168,85,247,0.5);">🚀 START</button>
 </div>
 
 <div id="game" style="display:none;">
@@ -122,8 +122,8 @@ select { background: black; color: white; border: 1px solid #a855f7; padding: 10
         <h2 style="margin-top:0;">🎰 SPACE GACHA</h2>
         <div id="gachaResult" style="font-size:40px; margin:30px 0; text-shadow:0 0 20px #a855f7;">READY</div>
         <div style="display:flex; gap:10px; justify-content:center;">
-            <button id="gachaBtn" class="menu-btn" onclick="spinGacha(1)">1回 (20破片)</button>
-            <button id="gacha10Btn" class="menu-btn" onclick="spinGacha(10)">10連 (200破片)</button>
+            <button id="gachaBtn" class="menu-btn" onclick="spinGacha(1)">1回 (15破片)</button>
+            <button id="gacha10Btn" class="menu-btn" onclick="spinGacha(10)">10連 (150破片)</button>
         </div>
         <button class="modal-close" onclick="closeScreen('gachaScreen')">閉じる</button>
     </div>
@@ -193,7 +193,6 @@ const potionEffects = {
     }},
     "✨ 奇跡の雫": { desc: "所持金 +1,000,000G、ポイント +50,000P を得る", type: "instant", action: () => { data.money += 1000000; data.points += 50000; } },
     "❓ 異質なポーション": { desc: "2分間、世界を「破壊」する権利を得る...", type: "buff", duration: 120000 },
-    // 破壊後 追加ポーション
     "🌍 星の恵み": { desc: "3分間、ミントの破片獲得量が3倍になる", type: "buff", duration: 180000 },
     "🌋 ヴォルカニック・ブル": { desc: "3分間、株価が超絶上がりやすくなる", type: "buff", duration: 180000 },
     "🧂 ソルトバリア": { desc: "3分間、株価の下落を完全に無効化", type: "buff", duration: 180000 }
@@ -212,11 +211,9 @@ if(data){
     if(data.alienMints === undefined) data.alienMints = 0;
     if(data.tutorialSeen === undefined) data.tutorialSeen = false;
     
-    // 図鑑（周回引継ぎ用）の初期化
     if(!data.discoveredMints) data.discoveredMints = [];
     if(!data.discoveredPotions) data.discoveredPotions = [];
     
-    // 既存データを図鑑に反映
     for(let m in data.mintInventory) if(data.mintInventory[m] > 0 && !data.discoveredMints.includes(m)) data.discoveredMints.push(m);
     for(let p in data.potions) if(data.potions[p] > 0 && !data.discoveredPotions.includes(p)) data.discoveredPotions.push(p);
 
@@ -377,7 +374,6 @@ function sellStock(i,amount){
     if(totalProfit > 0){
         let mintGain = Math.max(1, Math.floor(totalProfit / 10));
         
-        // ミントの破片バフ計算
         if(isBuffActive("🌍 星の恵み")) mintGain *= 3;
         else if(isBuffActive("💎 ミントブースト")) mintGain *= 2;
         
@@ -421,10 +417,10 @@ function updatePrices(skipUI = false){
         let change = (Math.random() - 0.5) * volatility;
         
         if(isBull) change = (Math.random() - 0.2) * volatility; 
-        if(isVolcanic) change = (Math.random() - 0.1) * volatility * 1.5; // 超絶ブル相場
+        if(isVolcanic) change = (Math.random() - 0.1) * volatility * 1.5;
 
         if(change < 0 && isProtect) change *= 0.5;
-        if(change < 0 && isSalt) change = 0; // 下落無効化
+        if(change < 0 && isSalt) change = 0;
 
         stock.price = Math.max(10, Math.floor(stock.price + change));
         stock.history.push(stock.price);
@@ -453,7 +449,6 @@ function updateTimer(){
 
 function isBuffActive(buffName){ return data.activeBuffs[buffName] && data.activeBuffs[buffName] > Date.now(); }
 
-/* 破壊システム */
 function openDestroy() {
     if (!isBuffActive("❓ 異質なポーション")) {
         alert("今はまだ押しても反応しない...。\n異質なポーションの効果中のみ「破壊」が可能になるようだ。");
@@ -550,13 +545,19 @@ function showNotification(text){
 
 const achievements=[
     {name:"初投資",desc:"株を1回買う",check:()=>data.totalBuys>=1},
-    {name:"トレーダー",desc:"100回購入",check:()=>data.totalBuys>=100},
+    {name:"トレーダー",desc:"株を100回購入",check:()=>data.totalBuys>=100},
+    {name:"資産形成",desc:"1,000,000G",check:()=>data.money>=1000000},
     {name:"大富豪",desc:"1,000,000,000G",check:()=>data.money>=1000000000},
     {name:"宇宙投資家",desc:"全株解放",check:()=>data.stocks.every(s=>s.unlocked)},
     {name:"ガチャ体験",desc:"ガチャを引く",check:()=>data.gachaCount>=1},
+    {name:"ミント中毒",desc:"ガチャを25回引く",check:()=>data.gachaCount>=25},
+    {name:"ガチャ廃人",desc:"ガチャを50回引く",check:()=>data.gachaCount>=50},
+    {name:"見習い醸造員",desc:"ポーション1回醸造",check:()=>data.brewCount>=1},
+    {name:"ミンティアルケミストリー",desc:"ポーションを25回醸造",check:()=>data.brewCount>=25},
     {name:"マスターアルケミスト",desc:"ポーションを50回醸造",check:()=>data.brewCount>=50},
+    {name:"危険物生成",desc:"異質なポーションを1回作成",check:()=>data.alienPotionCount>=1},
+    {name:"わかってやっているの？",desc:"異質なポーションを3回作成",check:()=>data.alienPotionCount>=5},
     {name:"世界の理を外れし者",desc:"異質なポーションを5回作成",check:()=>data.alienPotionCount>=5},
-    // 新・図鑑埋め実績 (永続)
     {name:"ミント図鑑コンプリート",desc:"すべての種類のミントをゲットする",check:()=>data.discoveredMints.length>=14},
     {name:"ポーション図鑑コンプリート",desc:"すべてのポーションを作る",check:()=>data.discoveredPotions.length>=12},
     {name:"隠し: UME&TUKE",hidden:true,check:()=>data.nickname==="UME&TUKE"}
@@ -621,7 +622,7 @@ function openMint(){
 
 function spinGacha(times){
     if(isGachaSpinning) return;
-    const cost = 20 * times;
+    const cost = 15 * times;
     if(data.mint < cost){ alert("ミントの破片が足りません"); return; }
     
     data.mint -= cost; isGachaSpinning = true; updateUI();
@@ -652,7 +653,6 @@ function spinGacha(times){
                 data.mintInventory[drop]++;
                 data.gachaCount++;
                 
-                // 図鑑登録
                 if(!data.discoveredMints.includes(drop)) data.discoveredMints.push(drop);
             }
             
@@ -719,7 +719,6 @@ function doBrew(){
 
     let result = "";
 
-    // レシピ判定
     if ((m1 === "ブラッドミント" && m2 === "ギャラクシーミント") || (m1 === "ギャラクシーミント" && m2 === "ブラッドミント")) {
         result = "❓ 異質なポーション";
         data.alienPotionCount++;
@@ -743,7 +742,6 @@ function doBrew(){
     data.potions[result]++;
     data.brewCount++;
     
-    // 図鑑登録
     if(!data.discoveredPotions.includes(result)) data.discoveredPotions.push(result);
     
     showNotification("🧪 " + result + " を醸造しました！");
