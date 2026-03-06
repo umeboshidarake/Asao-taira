@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>SPACE STOCK</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -24,68 +24,140 @@ text-shadow:0 0 25px #a855f7,0 0 50px #7e22ce;
 
 #game{
 padding:20px;
+max-width: 1200px;
+margin: 0 auto;
+}
+
+.menu-bar {
+display: flex;
+flex-wrap: wrap;
+gap: 15px;
+margin-bottom: 20px;
+justify-content: center;
+}
+
+.menu-btn {
+background: linear-gradient(45deg, #1f0b3b, #3b0764);
+border: 2px solid #a855f7;
+color: #e9d5ff;
+padding: 10px 20px;
+font-size: 16px;
+font-weight: bold;
+border-radius: 8px;
+cursor: pointer;
+text-transform: uppercase;
+letter-spacing: 1px;
+box-shadow: 0 0 10px rgba(168, 85, 247, 0.3), inset 0 0 10px rgba(168, 85, 247, 0.2);
+transition: all 0.3s ease;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+.menu-btn:hover {
+background: linear-gradient(45deg, #3b0764, #7e22ce);
+box-shadow: 0 0 20px #a855f7, inset 0 0 15px #c084fc;
+transform: translateY(-2px);
+color: white;
+}
+
+.status-bar {
+display: flex;
+flex-wrap: wrap;
+gap: 20px;
+background: rgba(255,255,255,0.05);
+padding: 15px;
+border-radius: 10px;
+border: 1px solid rgba(168,85,247,0.3);
+margin-bottom: 20px;
+font-size: 18px;
+}
+
+#buffStatus {
+color: #c084fc;
+font-weight: bold;
+margin-bottom: 10px;
+min-height: 24px;
 }
 
 #stocks{
 display:grid;
 grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+gap: 15px;
 }
 
 .card{
 background:rgba(255,255,255,0.05);
 border:1px solid #a855f7;
 padding:15px;
-margin:10px;
 border-radius:15px;
-box-shadow:0 0 20px rgba(168,85,247,0.5);
+box-shadow:0 0 20px rgba(168,85,247,0.3);
 transition:0.3s;
 position:relative;
 }
 
 .card:hover{
-transform:scale(1.05);
-box-shadow:0 0 35px #a855f7;
+transform:scale(1.02);
+box-shadow:0 0 30px rgba(168,85,247,0.6);
+}
+
+.card-actions {
+display: flex;
+flex-direction: column;
+gap: 5px;
+margin-top: 10px;
+}
+
+.btn-group {
+display: flex;
+gap: 5px;
 }
 
 button{
 background:black;
 border:1px solid #a855f7;
 color:#c084fc;
-padding:6px 12px;
-margin:3px;
+padding:6px 10px;
 cursor:pointer;
 transition:0.3s;
+border-radius: 4px;
+flex: 1;
 }
 
 button:hover:not(:disabled){
 background:#a855f7;
 color:black;
-box-shadow:0 0 15px #a855f7;
+box-shadow:0 0 10px #a855f7;
 }
 
 button:disabled{
-border-color:#555;
-color:#555;
+border-color:#444;
+color:#666;
 cursor:not-allowed;
 box-shadow:none;
 }
 
 .unlockBtn{
+width: 100%;
+padding: 10px;
+font-weight: bold;
 animation:unlockGlow 1.5s infinite alternate;
 }
 
 @keyframes unlockGlow{
 from{box-shadow:0 0 5px #a855f7;}
-to{box-shadow:0 0 25px #a855f7;}
+to{box-shadow:0 0 20px #a855f7;}
 }
 
 .locked{
-opacity:0.3;
+opacity:0.4;
+filter: grayscale(0.8);
 }
 
 canvas{
-background:black;
-border:none;
+background:rgba(0,0,0,0.5);
+border:1px solid rgba(168,85,247,0.3);
+border-radius: 10px;
 margin-top:10px;
 }
 
@@ -98,6 +170,7 @@ height:300px;
 display:flex;
 flex-wrap:wrap;
 gap:10px;
+margin-top: 10px;
 margin-bottom:20px;
 }
 
@@ -108,6 +181,7 @@ border:1px solid #a855f7;
 color:#c084fc;
 border-radius:5px;
 font-size:14px;
+transition: 0.2s;
 }
 
 .legend-item:hover{
@@ -116,66 +190,8 @@ color:white;
 }
 
 .legend-item.hidden-stock{
-opacity: 0.5;
+opacity: 0.4;
 border-style: dashed;
-}
-
-#tooltip{
-position:fixed;
-background:rgba(20,0,40,0.95);
-border:1px solid #a855f7;
-padding:8px;
-color:#e9d5ff;
-font-size:14px;
-pointer-events:none;
-display:none;
-z-index:1000;
-box-shadow:0 0 20px #7e22ce;
-}
-
-#nicknameScreen{
-position:fixed;
-inset:0;
-background:black;
-display:flex;
-justify-content:center;
-align-items:center;
-flex-direction:column;
-}
-
-input{
-padding:10px;
-font-size:18px;
-background:black;
-border:1px solid #a855f7;
-color:white;
-}
-
-#bgCanvas{
-position:fixed;
-top:0;
-left:0;
-width:100vw;
-height:100vh;
-z-index:-999;
-pointer-events:none;
-}
-
-#achievementScreen{
-position:fixed;
-inset:0;
-background:black;
-padding:40px;
-z-index:3000;
-overflow:auto;
-display:none;
-}
-
-.achievement{
-border:1px solid #a855f7;
-padding:10px;
-margin:10px;
-border-radius:10px;
 }
 
 #notificationContainer {
@@ -189,62 +205,89 @@ gap:10px;
 pointer-events:none;
 }
 
-#gachaScreen{
+.modal-screen {
 position:fixed;
 inset:0;
-background:black;
-display:none;
-align-items:center;
-justify-content:center;
-flex-direction:column;
-z-index:4000;
-}
-
-#gachaResult{
-font-size:40px;
-margin:20px;
-text-shadow:0 0 20px #a855f7;
-}
-
-#mintScreen{
-position:fixed;
-inset:0;
-background:black;
-display:none;
+background:rgba(0,0,0,0.9);
+backdrop-filter: blur(5px);
 padding:40px;
-z-index:4000;
+z-index:3000;
+overflow:auto;
+display:none;
+flex-direction:column;
+align-items:center;
 }
 
-.mintItem{
+.modal-content {
+background: #110622;
+border: 2px solid #a855f7;
+border-radius: 15px;
+padding: 30px;
+width: 80%;
+max-width: 600px;
+box-shadow: 0 0 40px rgba(168,85,247,0.4);
+}
+
+.modal-close {
+margin-top: 20px;
+padding: 10px 30px;
+font-size: 16px;
+background: transparent;
+}
+
+.list-item {
 border:1px solid #a855f7;
-padding:10px;
-margin:10px;
+padding:15px;
+margin-bottom:10px;
 border-radius:10px;
+background: rgba(255,255,255,0.02);
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+select {
+background: black;
+color: white;
+border: 1px solid #a855f7;
+padding: 10px;
+font-size: 16px;
+border-radius: 5px;
+width: 100%;
+margin-bottom: 15px;
 }
 </style>
 </head>
 
 <body>
-<canvas id="bgCanvas"></canvas>
 
-<div id="nicknameScreen">
+<div id="nicknameScreen" style="position:fixed;inset:0;background:black;display:flex;justify-content:center;align-items:center;flex-direction:column;z-index:9999;">
 <h1>SPACE STOCK</h1>
 <p>ニックネームを入力</p>
-<input id="nicknameInput" placeholder="名無しトレーダー">
-<button onclick="startGame()">START</button>
+<input id="nicknameInput" placeholder="名無しトレーダー" style="padding:10px;font-size:18px;background:black;border:1px solid #a855f7;color:white;margin-bottom:20px;">
+<button onclick="startGame()" style="padding:10px 30px;font-size:18px;">START</button>
 </div>
 
 <div id="game" style="display:none;">
 <h1>SPACE STOCK MARKET</h1>
-<button onclick="openAchievements()">🏆 実績</button>
-<button onclick="openGacha()">🎰 ガチャ</button>
-<button onclick="openMint()">💎 ミント</button>
-
 <p>👤 <span id="playerName"></span></p>
-<p>💰 所持金: <span id="money"></span>G</p>
-<p>⭐ ポイント: <span id="points"></span></p>
-<p>💎 ミント: <span id="mint"></span></p>
-<p>⏳ 次の変動まで: <span id="timer"></span></p>
+
+<div class="menu-bar">
+    <button class="menu-btn" onclick="openAchievements()">🏆 実績</button>
+    <button class="menu-btn" onclick="openGacha()">🎰 ガチャ</button>
+    <button class="menu-btn" onclick="openMint()">💎 ミント</button>
+    <button class="menu-btn" onclick="openBrew()">🧪 醸造</button>
+    <button class="menu-btn" onclick="openBag()">🎒 バッグ</button>
+</div>
+
+<div class="status-bar">
+    <div>💰 所持金: <span id="money"></span>G</div>
+    <div>⭐ ポイント: <span id="points"></span></div>
+    <div>💎 ミント: <span id="mint"></span></div>
+    <div>⏳ 変動まで: <span id="timer"></span></div>
+</div>
+
+<div id="buffStatus"></div>
 
 <h2>📊 全銘柄グラフ</h2>
 <canvas id="allGraph"></canvas>
@@ -252,26 +295,56 @@ border-radius:10px;
 <div id="stocks"></div>
 </div>
 
-<div id="tooltip"></div>
 <div id="notificationContainer"></div>
 
-<div id="achievementScreen">
-<h2>🏆 実績</h2>
-<div id="achievementList"></div>
-<button onclick="closeAchievements()">閉じる</button>
+<div id="achievementScreen" class="modal-screen">
+    <div class="modal-content">
+        <h2 style="margin-top:0; color:#e9d5ff;">🏆 実績</h2>
+        <div id="achievementList"></div>
+        <button class="modal-close" onclick="closeScreen('achievementScreen')">閉じる</button>
+    </div>
 </div>
 
-<div id="gachaScreen">
-<h2>🎰 SPACE GACHA</h2>
-<div id="gachaResult">READY</div>
-<button id="gachaBtn" onclick="spinGacha()">回す (50ミント)</button>
-<button onclick="closeGacha()">閉じる</button>
+<div id="gachaScreen" class="modal-screen">
+    <div class="modal-content" style="text-align:center;">
+        <h2 style="margin-top:0;">🎰 SPACE GACHA</h2>
+        <div id="gachaResult" style="font-size:40px; margin:30px 0; text-shadow:0 0 20px #a855f7;">READY</div>
+        <button id="gachaBtn" class="menu-btn" style="margin:0 auto;" onclick="spinGacha()">回す (50ミント)</button>
+        <button class="modal-close" onclick="closeScreen('gachaScreen')">閉じる</button>
+    </div>
 </div>
 
-<div id="mintScreen">
-<h2>💎 ミントコレクション</h2>
-<div id="mintList"></div>
-<button onclick="closeMint()">閉じる</button>
+<div id="mintScreen" class="modal-screen">
+    <div class="modal-content">
+        <h2 style="margin-top:0;">💎 ミントコレクション</h2>
+        <div id="mintList"></div>
+        <button class="modal-close" onclick="closeScreen('mintScreen')">閉じる</button>
+    </div>
+</div>
+
+<div id="brewScreen" class="modal-screen">
+    <div class="modal-content">
+        <h2 style="margin-top:0;">🧪 ポーション醸造</h2>
+        <p>ベーシックミント×1 と、任意のミント×2 を消費してポーションを作ります。</p>
+        <p style="color:#c084fc;">所持ベーシックミント: <span id="basicMintCount">0</span></p>
+        
+        <label>追加素材 1:</label>
+        <select id="brewMat1"></select>
+
+        <label>追加素材 2:</label>
+        <select id="brewMat2"></select>
+
+        <button class="menu-btn" style="width:100%; justify-content:center; margin-top:10px;" onclick="doBrew()">✨ 醸造する ✨</button>
+        <button class="modal-close" onclick="closeScreen('brewScreen')">閉じる</button>
+    </div>
+</div>
+
+<div id="bagScreen" class="modal-screen">
+    <div class="modal-content">
+        <h2 style="margin-top:0;">🎒 バッグ (ポーション)</h2>
+        <div id="bagList"></div>
+        <button class="modal-close" onclick="closeScreen('bagScreen')">閉じる</button>
+    </div>
 </div>
 
 <script>
@@ -280,7 +353,6 @@ let timerInterval = null;
 let priceCheckTimeout = null;
 let isGachaSpinning = false;
 
-// 新しい株の固有データ（名前・初期価格・性格）
 const stockTemplates = [
     { name: "アストロ通信", basePrice: 300, personality: "【安定】インフラ系。値動きが緩やか。" },
     { name: "スターダスト鉱業", basePrice: 500, personality: "【資源】宇宙資源の発掘。堅実に伸びる。" },
@@ -294,20 +366,40 @@ const stockTemplates = [
     { name: "オメガ・ホールディングス", basePrice: 10000, personality: "【覇者】宇宙経済を牛耳る超大企業。" }
 ];
 
-// 古いセーブデータとの互換性パッチ
+const potionEffects = {
+    "💰 黄金の雫": { desc: "所持金即座に +100,000G", type: "instant", action: () => { data.money += 100000; } },
+    "⭐ 知識の霊薬": { desc: "ポイント即座に +5,000P", type: "instant", action: () => { data.points += 5000; } },
+    "📈 ハイパードライブ薬": { desc: "3分間、株価の変動幅が2倍になる", type: "buff", duration: 180000 },
+    "🛡 プロテクトジェル": { desc: "3分間、株価下落時の下落幅を半減", type: "buff", duration: 180000 },
+    "💎 ミントブースト": { desc: "3分間、売却時のミント獲得量2倍", type: "buff", duration: 180000 },
+    "🚀 ギャラクシーブル": { desc: "3分間、市場が「好景気」になり株価が上がりやすくなる", type: "buff", duration: 180000 },
+    "⏳ タイムワープ薬": { desc: "時間を進め、即座に20回分の価格変動を起こす", type: "instant", action: () => {
+        for(let i=0; i<20; i++) updatePrices(true);
+        updateUI();
+    }},
+    "✨ 奇跡の雫": { desc: "所持金 +1,000,000G、ポイント +50,000P を得る奇跡の薬", type: "instant", action: () => { data.money += 1000000; data.points += 50000; } },
+    "❓ 異質なポーション": { desc: "謎の組み合わせで生まれたポーション。今はまだ何も起きないようだ…", type: "none", action: () => {} }
+};
+
 if(data){
     if(!data.achievementsUnlocked) data.achievementsUnlocked = [];
     if(!data.mintInventory) data.mintInventory = {};
     if(data.totalBuys === undefined) data.totalBuys = 0;
     if(data.mint === undefined) data.mint = 0;
-    if(data.gachaCount === undefined) data.gachaCount = 0; // 新規追加：ガチャ回数
+    if(data.gachaCount === undefined) data.gachaCount = 0;
+    if(!data.potions) data.potions = {};
+    if(!data.activeBuffs) data.activeBuffs = {};
     
+    // 宇宙ミント -> ギャラクシーミントの互換性パッチ
+    if(data.mintInventory["宇宙ミント"]){
+        data.mintInventory["ギャラクシーミント"] = (data.mintInventory["ギャラクシーミント"] || 0) + data.mintInventory["宇宙ミント"];
+        delete data.mintInventory["宇宙ミント"];
+    }
+
     data.stocks.forEach((stock, i) => {
         if(stock.buyPrice === undefined) stock.buyPrice = stock.price;
         if(stock.unlockCost === undefined) stock.unlockCost = 500 + i * 300;
         if(stock.history === undefined) stock.history = [stock.price];
-        
-        // 古い「STOCK-〇」という名前なら、新しい名前にアップデート（価格はそのまま引き継ぐ）
         if(stock.name.startsWith("STOCK-")) {
             stock.name = stockTemplates[i].name;
             stock.personality = stockTemplates[i].personality;
@@ -315,34 +407,19 @@ if(data){
     });
 } else {
     data={
-        nickname:"",
-        money:10000,
-        points:0,
-        mint:0,
-        mintInventory:{},
-        stocks:[],
-        lastUpdate:Date.now(),
-        totalBuys:0,
-        gachaCount:0, // 新規追加：ガチャ回数
-        achievementsUnlocked:[]
+        nickname:"", money:10000, points:0, mint:0,
+        mintInventory:{}, potions:{}, activeBuffs:{}, stocks:[],
+        lastUpdate:Date.now(), totalBuys:0, gachaCount:0, achievementsUnlocked:[]
     };
 
     for(let i=0;i<10;i++){
         let template = stockTemplates[i];
-        // 基礎価格を中心に少しだけランダムにばらけさせる
         let initialPrice = Math.floor(template.basePrice * (0.9 + Math.random() * 0.2));
-
         data.stocks.push({
-            name: template.name,
-            price: initialPrice,
-            owned: 0,
-            unlocked: i < 3,
-            unlockCost: 500 + i * 300,
-            personality: template.personality,
-            history: [initialPrice],
-            buyPrice: 0,
-            canSell: true,
-            visible: true
+            name: template.name, price: initialPrice, owned: 0,
+            unlocked: i < 3, unlockCost: 500 + i * 300,
+            personality: template.personality, history: [initialPrice],
+            buyPrice: 0, canSell: true, visible: true
         });
     }
     save();
@@ -354,15 +431,8 @@ function save(){
 
 function startGame(){
     let name=document.getElementById("nicknameInput").value;
-
-    if(name.trim()=="" && data.nickname){
-        name=data.nickname;
-    }
-    
-    if(name.trim()=="") {
-        name = "名無しトレーダー";
-    }
-
+    if(name.trim()=="" && data.nickname) name=data.nickname;
+    if(name.trim()=="") name = "名無しトレーダー";
     data.nickname=name;
     save();
 
@@ -370,7 +440,7 @@ function startGame(){
     document.getElementById("game").style.display="block";
     document.getElementById("playerName").innerText=data.nickname;
 
-    checkAchievements(); // 名前入力時の実績チェック用
+    checkAchievements();
     updateUI();
     startTimers();
 }
@@ -381,9 +451,9 @@ function startTimers(){
 }
 
 function updateUI(){
-    document.getElementById("money").innerText=data.money;
-    document.getElementById("points").innerText=data.points;
-    document.getElementById("mint").innerText=data.mint;
+    document.getElementById("money").innerText=data.money.toLocaleString();
+    document.getElementById("points").innerText=data.points.toLocaleString();
+    document.getElementById("mint").innerText=data.mint.toLocaleString();
 
     const stocksDiv=document.getElementById("stocks");
     stocksDiv.innerHTML="";
@@ -397,19 +467,22 @@ function updateUI(){
             let diff = stock.price - stock.buyPrice;
             let sign = diff >= 0 ? "+" : "";
             let color = diff >= 0 ? "lime" : "red";
-            profitDisplay = `<span style="color:${color}; font-size:12px;">(${sign}${diff}G/株)</span>`;
+            profitDisplay = `<span style="color:${color}; font-size:12px;">(${sign}${diff.toLocaleString()}G/株)</span>`;
         }
 
         card.innerHTML=`
             <h3 style="margin: 0 0 5px 0; font-size:18px;">${stock.name}</h3>
             <p style="font-size:11px; color:#c084fc; margin-top:0; height:30px;">${stock.personality}</p>
-            <p>現在値: ${stock.price}G ${profitDisplay}</p>
-            <p>保有: ${stock.owned}株</p>
+            <p style="font-size:18px; font-weight:bold; margin:5px 0;">現在値: ${stock.price.toLocaleString()}G ${profitDisplay}</p>
+            <p style="margin:5px 0;">保有: ${stock.owned.toLocaleString()}株</p>
         `;
 
         if(stock.unlocked){
+            const actions = document.createElement("div");
+            actions.className = "card-actions";
+
             const btnGroup = document.createElement("div");
-            
+            btnGroup.className = "btn-group";
             [1,10,100].forEach(n=>{
                 const btn=document.createElement("button");
                 btn.innerText="買 "+n;
@@ -417,9 +490,10 @@ function updateUI(){
                 if(data.money < stock.price * n) btn.disabled = true;
                 btnGroup.appendChild(btn);
             });
-            card.appendChild(btnGroup);
+            actions.appendChild(btnGroup);
 
             const btnGroupSell = document.createElement("div");
+            btnGroupSell.className = "btn-group";
             [1,10,100].forEach(n=>{
                 const btn=document.createElement("button");
                 btn.innerText="売 "+n;
@@ -427,11 +501,13 @@ function updateUI(){
                 if(stock.owned<n) btn.disabled=true;
                 btnGroupSell.appendChild(btn);
             });
-            card.appendChild(btnGroupSell);
+            actions.appendChild(btnGroupSell);
+            
+            card.appendChild(actions);
         }else{
             const unlockBtn=document.createElement("button");
             unlockBtn.className="unlockBtn";
-            unlockBtn.innerText=stock.unlockCost+"Pで解放";
+            unlockBtn.innerText=stock.unlockCost.toLocaleString()+"Pで解放";
             
             if(data.points >= stock.unlockCost){
                 unlockBtn.disabled = false;
@@ -454,20 +530,14 @@ function updateUI(){
 function buyStock(i,amount){
     const stock=data.stocks[i];
     const cost=stock.price*amount;
-
     if(data.money<cost) return;
 
     data.money-=cost;
-    
-    if(stock.owned === 0) {
-        stock.buyPrice = stock.price;
-    } else {
-        stock.buyPrice = Math.floor(((stock.buyPrice * stock.owned) + cost) / (stock.owned + amount));
-    }
+    if(stock.owned === 0) stock.buyPrice = stock.price;
+    else stock.buyPrice = Math.floor(((stock.buyPrice * stock.owned) + cost) / (stock.owned + amount));
     
     stock.owned+=amount;
     data.totalBuys++;
-
     updateUI();
 }
 
@@ -481,13 +551,13 @@ function sellStock(i,amount){
     data.money += sellPrice * amount;
 
     if(profit > 0){
-        const mintGain = Math.max(1, Math.floor(profit / 10));
+        let mintGain = Math.max(1, Math.floor(profit / 10));
+        if(isBuffActive("💎 ミントブースト")) mintGain *= 2;
         data.mint += mintGain;
     }
 
     stock.owned-=amount;
     if(stock.owned === 0) stock.buyPrice = 0;
-
     updateUI();
 }
 
@@ -507,21 +577,30 @@ function checkPriceUpdate(){
         let updates = Math.floor(elapsed / 60000);
         if (updates > 30) updates = 30;
         
-        for(let i=0; i<updates; i++){
-            updatePrices(true);
-        }
+        for(let i=0; i<updates; i++){ updatePrices(true); }
         data.lastUpdate = now - (elapsed % 60000);
         updateUI();
     }
-    
     priceCheckTimeout = setTimeout(checkPriceUpdate, 1000);
 }
 
 function updatePrices(skipUI = false){
+    const isHyper = isBuffActive("📈 ハイパードライブ薬");
+    const isProtect = isBuffActive("🛡 プロテクトジェル");
+    const isBull = isBuffActive("🚀 ギャラクシーブル");
+
     data.stocks.forEach(stock=>{
-        // 基礎価格に基づいて変動幅を変える（高い株ほど大きく動く）
         let volatility = stock.price * 0.05; 
+        if(isHyper) volatility *= 2;
+
         let change = (Math.random() - 0.5) * volatility;
+        
+        // 好景気バフ：マイナスに振れにくく、プラスに振れやすくする
+        if(isBull) change = (Math.random() - 0.2) * volatility; 
+        
+        // 防御バフ：下落幅を半減
+        if(change < 0 && isProtect) change *= 0.5;
+
         stock.price = Math.max(10, Math.floor(stock.price + change));
         stock.history.push(stock.price);
         if(stock.history.length>30) stock.history.shift();
@@ -532,15 +611,30 @@ function updatePrices(skipUI = false){
 }
 
 function updateTimer(){
-    const remain=60000-(Date.now()-data.lastUpdate);
+    const now = Date.now();
+    const remain=60000-(now-data.lastUpdate);
     const sec=Math.max(0,Math.floor(remain/1000));
     document.getElementById("timer").innerText=sec+"秒";
+
+    let buffText = "";
+    for(let buff in data.activeBuffs){
+        if(data.activeBuffs[buff] > now){
+            let remainBuff = Math.floor((data.activeBuffs[buff] - now) / 1000);
+            buffText += `<span style="margin-right:15px; display:inline-block;">${buff}: 残り ${remainBuff}秒</span>`;
+        } else {
+            delete data.activeBuffs[buff];
+        }
+    }
+    document.getElementById("buffStatus").innerHTML = buffText;
+}
+
+function isBuffActive(buffName){
+    return data.activeBuffs[buffName] && data.activeBuffs[buffName] > Date.now();
 }
 
 function drawAllGraph(){
     const canvas=document.getElementById("allGraph");
     const ctx=canvas.getContext("2d");
-
     canvas.width=canvas.clientWidth;
     canvas.height=300;
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -549,7 +643,6 @@ function drawAllGraph(){
 
     data.stocks.forEach((stock,index)=>{
         if(!stock.visible || !stock.history || stock.history.length === 0) return;
-
         const max=Math.max(...stock.history, 1);
         const min=Math.min(...stock.history, 0);
         let range = max - min;
@@ -578,21 +671,40 @@ function drawAllGraph(){
 function drawLegend(){
     const legend=document.getElementById("legend");
     legend.innerHTML="";
-
     data.stocks.forEach((stock,i)=>{
         const item=document.createElement("div");
         item.className="legend-item" + (stock.visible ? "" : " hidden-stock");
         item.innerText=stock.name;
-
-        item.onclick=()=>{
-            stock.visible=!stock.visible;
-            updateUI();
-        };
+        item.onclick=()=>{ stock.visible=!stock.visible; updateUI(); };
         legend.appendChild(item);
     });
 }
 
-// 追加された新しい実績
+function openScreen(id){ document.getElementById(id).style.display="flex"; }
+function closeScreen(id){
+    if(id === 'gachaScreen' && isGachaSpinning) return;
+    document.getElementById(id).style.display="none";
+}
+
+function showNotification(text){
+    const container = document.getElementById("notificationContainer");
+    const popup = document.createElement("div");
+    popup.style.background = "linear-gradient(45deg, rgba(59, 7, 100, 0.95), rgba(126, 34, 206, 0.95))";
+    popup.style.border = "1px solid #c084fc";
+    popup.style.padding = "15px";
+    popup.style.borderRadius = "10px";
+    popup.style.boxShadow = "0 0 20px #a855f7";
+    popup.style.color = "white";
+    popup.style.fontWeight = "bold";
+    popup.style.opacity = "0";
+    popup.style.transform = "translateX(100px)";
+    popup.style.transition = "all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+    popup.innerText = text;
+    container.appendChild(popup);
+    setTimeout(() => { popup.style.opacity = "1"; popup.style.transform = "translateX(0)"; }, 10);
+    setTimeout(() => { popup.style.opacity = "0"; popup.style.transform = "translateX(100px)"; setTimeout(() => popup.remove(), 500); }, 4000);
+}
+
 const achievements=[
     {name:"初投資",desc:"株を1回買う",check:()=>data.totalBuys>=1},
     {name:"トレーダー",desc:"100回購入",check:()=>data.totalBuys>=100},
@@ -602,112 +714,68 @@ const achievements=[
     {name:"株コレクター",desc:"1つの株を100株保有",check:()=>data.stocks.some(s=>s.owned>=100)},
     {name:"宇宙投資家",desc:"全株解放",check:()=>data.stocks.every(s=>s.unlocked)},
     {name:"ミント収集家",desc:"100ミント到達",check:()=>data.mint>=100},
-    {name:"ミント王",desc:"10,000ミント到達",check:()=>data.mint>=10000},
-    {name:"伝説トレーダー",desc:"10,000,000,000G",check:()=>data.money>=10000000000},
     {name:"ガチャ体験",desc:"ガチャでミントを1個獲得",check:()=>data.gachaCount>=1},
     {name:"ミント好き",desc:"ガチャでミントを10個獲得",check:()=>data.gachaCount>=10},
     {name:"ガチャジャンキー",desc:"ガチャでミントを100個獲得",check:()=>data.gachaCount>=100},
+    {name:"ポーション初醸造",desc:"ポーションを初めて作る",check:()=>Object.keys(data.potions).length > 0},
     {name:"隠し: UME&TUKE",hidden:true,check:()=>data.nickname==="UME&TUKE"},
-    {name:"ブラックホール",hidden:true,check:()=>data.money<0},
-    {name:"ギャンブラー",hidden:true,check:()=>data.totalBuys>=500},
-    {name:"ミント神",hidden:true,check:()=>data.mint>=50000},
-    {name:"宇宙覇者",hidden:true,check:()=>data.money>=1000000000000},
-    {name:"株マスター",hidden:true,check:()=>data.stocks.every(s=>s.owned>0)}
+    {name:"ブラックホール",hidden:true,check:()=>data.money<0}
 ];
 
 function checkAchievements(){
     if(!data.achievementsUnlocked) return;
-    
     achievements.forEach((a,i)=>{
         if(a.check() && !data.achievementsUnlocked.includes(i)){
             data.achievementsUnlocked.push(i);
-            showAchievement(a.name);
+            showNotification("🏆 実績解除: " + a.name);
         }
     });
 }
 
 function openAchievements(){
-    document.getElementById("achievementScreen").style.display="block";
+    openScreen("achievementScreen");
     const list=document.getElementById("achievementList");
     list.innerHTML="";
-
     achievements.forEach((a,i)=>{
         const div=document.createElement("div");
-        div.className="achievement";
+        div.className="list-item";
         if(data.achievementsUnlocked.includes(i)){
-            div.innerText=a.name+" - "+(a.hidden ? "隠し実績解除！" : a.desc);
+            div.innerHTML=`<span>${a.name}</span> <span style="font-size:12px;color:#c084fc;">${a.hidden?"隠し実績解除！":a.desc}</span>`;
         }else{
-            div.innerText="？？？？？？？？";
+            div.innerText="？？？？？？？？"; div.style.opacity = "0.5";
         }
         list.appendChild(div);
     });
 }
 
-function closeAchievements(){
-    document.getElementById("achievementScreen").style.display="none";
-}
-
-function showAchievement(name){
-    const container = document.getElementById("notificationContainer");
-    
-    const popup = document.createElement("div");
-    popup.style.background = "rgba(126, 34, 206, 0.95)";
-    popup.style.border = "1px solid #a855f7";
-    popup.style.padding = "15px";
-    popup.style.borderRadius = "10px";
-    popup.style.boxShadow = "0 0 20px #a855f7";
-    popup.style.color = "white";
-    popup.style.fontWeight = "bold";
-    popup.style.opacity = "0";
-    popup.style.transform = "translateX(100px)";
-    popup.style.transition = "all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
-    popup.innerText = "🏆 実績解除: " + name;
-    
-    container.appendChild(popup);
-    
-    setTimeout(() => {
-        popup.style.opacity = "1";
-        popup.style.transform = "translateX(0)";
-    }, 10);
-    
-    setTimeout(() => {
-        popup.style.opacity = "0";
-        popup.style.transform = "translateX(100px)";
-        setTimeout(() => popup.remove(), 500);
-    }, 4000);
-}
-
-function openGacha(){
-    document.getElementById("gachaScreen").style.display="flex";
-}
-
-function closeGacha(){
-    if(isGachaSpinning) return;
-    document.getElementById("gachaScreen").style.display="none";
-}
-
-// 排出率を調整した新しいミントテーブル（合計100%）
 const mintTable = [
-    {name:"ベーシックミント",rate:15},
-    {name:"ウォーターミント",rate:5},
-    {name:"チョコチップミント",rate:4},
-    {name:"ブラッドミント",rate:1},
-    {name:"ブルーミント",rate:20},
-    {name:"レッドミント",rate:20},
-    {name:"グリーンミント",rate:20},
-    {name:"パープルミント",rate:8},
-    {name:"ゴールドミント",rate:5},
-    {name:"ギャラクシーミント",rate:0.5},
-    {name:"ブラックホールミント",rate:1.5}
+    {name:"ベーシックミント",rate:15}, {name:"ウォーターミント",rate:7}, {name:"チョコチップミント",rate:3},
+    {name:"ブラッドミント",rate:1}, {name:"ブルーミント",rate:20}, {name:"レッドミント",rate:20},
+    {name:"グリーンミント",rate:20}, {name:"パープルミント",rate:8}, {name:"ゴールドミント",rate:5},
+    {name:"ギャラクシーミント",rate:0.5}, {name:"ブラックホールミント",rate:0.5}
 ];
-    
+
+function openGacha() { openScreen("gachaScreen"); }
+function openMint(){
+    openScreen("mintScreen");
+    const list=document.getElementById("mintList");
+    list.innerHTML="";
+    let hasMint = false;
+    for(let m in data.mintInventory){
+        if(data.mintInventory[m] > 0){
+            hasMint = true;
+            const div=document.createElement("div");
+            div.className="list-item";
+            div.innerText=m+" : "+data.mintInventory[m]+"個";
+            list.appendChild(div);
+        }
+    }
+    if(!hasMint) list.innerHTML="<p>まだミントを持っていません。株で利益を出してガチャを回そう！</p>";
+}
+
 function spinGacha(){
     if(isGachaSpinning) return;
-    if(data.mint < 50){
-        alert("ミントが足りません");
-        return;
-    }
-
+    if(data.mint < 50){ alert("ミントが足りません"); return; }
     data.mint -= 50;
     isGachaSpinning = true;
     updateUI();
@@ -720,59 +788,155 @@ function spinGacha(){
     const anim=setInterval(()=>{
         resultBox.innerText=names[Math.floor(Math.random()*names.length)];
         count++;
-
         if(count>20){
             clearInterval(anim);
             let rand=Math.random()*100;
-            let total=0;
-            let result="";
-
+            let total=0; let result="";
             for(let m of mintTable){
                 total+=m.rate;
-                if(rand<=total){
-                    result=m.name;
-                    break;
-                }
+                if(rand<=total){ result=m.name; break; }
             }
-
             if(!data.mintInventory[result]) data.mintInventory[result]=0;
             data.mintInventory[result]++;
-            data.gachaCount++; // ガチャ回数をカウント
+            data.gachaCount++;
             
             resultBox.innerText="✨ "+result+" ✨";
-            
             isGachaSpinning = false;
             document.getElementById("gachaBtn").disabled = false;
-            
-            checkAchievements(); // 実績の判定
-            save(); // セーブ
+            checkAchievements(); save();
         }
     },80);
 }
 
-function openMint(){
-    document.getElementById("mintScreen").style.display="block";
-    const list=document.getElementById("mintList");
-    list.innerHTML="";
+// 🧪 ミントのレアリティスコア（値が高いほどレア）
+const mintScores = {
+    "青ミント": 2, "赤ミント": 2, "ベーシックミント": 2, "緑ミント": 2,
+    "ウォーターミント": 5, "紫ミント": 4, "金ミント": 6, "チョコチップミント": 10,
+    "ギャラクシーミント": 30, "ブラッドミント": 28, "ブラックホールミント": 30
+};
 
-    let hasMint = false;
+function openBrew(){
+    openScreen("brewScreen");
+    document.getElementById("basicMintCount").innerText = (data.mintInventory["ベーシックミント"] || 0);
+    
+    const mat1 = document.getElementById("brewMat1");
+    const mat2 = document.getElementById("brewMat2");
+    mat1.innerHTML = ""; mat2.innerHTML = "";
+
+    let hasAny = false;
     for(let m in data.mintInventory){
-        hasMint = true;
-        const div=document.createElement("div");
-        div.className="mintItem";
-        div.innerText=m+" : "+data.mintInventory[m]+"個";
-        list.appendChild(div);
+        if(data.mintInventory[m] > 0){
+            hasAny = true;
+            mat1.innerHTML += `<option value="${m}">${m} (所持:${data.mintInventory[m]})</option>`;
+            mat2.innerHTML += `<option value="${m}">${m} (所持:${data.mintInventory[m]})</option>`;
+        }
     }
-    
-    if(!hasMint) {
-        list.innerHTML="<p>まだミントを持っていません。株で利益を出してガチャを回そう！</p>";
+    if(!hasAny){
+        mat1.innerHTML = `<option value="">ミントがありません</option>`;
+        mat2.innerHTML = `<option value="">ミントがありません</option>`;
     }
 }
 
-function closeMint(){
-    document.getElementById("mintScreen").style.display="none";
-}
+function doBrew(){
+    const basicCount = data.mintInventory["ベーシックミント"] || 0;
+    const m1 = document.getElementById("brewMat1").value;
+    const m2 = document.getElementById("brewMat2").value;
+
+    if(basicCount < 1){ alert("ベーシックミントが足りません！"); return; }
+    if(!m1 || !m2){ alert("追加素材となるミントを選択してください！"); return; }
+
+    let tempInv = { ...data.mintInventory };
+    tempInv["ベーシックミント"]--;
+    if(tempInv[m1] <= 0){ alert(`${m1} が足りません！`); return; }
+    tempInv[m1]--;
+    if(tempInv[m2] <= 0){ alert(`${m2} が足りません！`); return; }
     
+    data.mintInventory["ベーシックミント"]--;
+    data.mintInventory[m1]--;
+    data.mintInventory[m2]--;
+
+    let result = "";
+
+    // 🌟 特殊レシピ判定 (ベーシック + ブラッド + ギャラクシー)
+    if ((m1 === "ブラッドミント" && m2 === "ギャラクシーミント") || (m1 === "ギャラクシーミント" && m2 === "ブラッドミント")) {
+        result = "❓ 異質なポーション";
+    } else {
+        // 通常のスコアに基づく抽選
+        let score = (mintScores[m1] || 1) + (mintScores[m2] || 1);
+        let pool = [];
+
+        if (score < 10) {
+            pool = ["⭐ 知識の霊薬", "📈 ハイパードライブ薬", "💰 黄金の雫"];
+        } else if (score < 20) {
+            pool = ["💰 黄金の雫", "🛡 プロテクトジェル", "⏳ タイムワープ薬"];
+        } else if (score < 40) {
+            pool = ["💎 ミントブースト", "🚀 ギャラクシーブル", "⏳ タイムワープ薬"];
+        } else {
+            pool = ["🚀 ギャラクシーブル", "✨ 奇跡の雫", "💎 ミントブースト"];
+        }
+        
+        result = pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    if(!data.potions[result]) data.potions[result] = 0;
+    data.potions[result]++;
+    
+    showNotification("🧪 " + result + " を醸造しました！");
+    checkAchievements();
+    save();
+    openBrew(); 
+}
+
+function openBag(){
+    openScreen("bagScreen");
+    const list = document.getElementById("bagList");
+    list.innerHTML = "";
+    let hasPotion = false;
+
+    for(let p in data.potions){
+        if(data.potions[p] > 0){
+            hasPotion = true;
+            const div = document.createElement("div");
+            div.className = "list-item";
+            div.innerHTML = `
+                <div>
+                    <div style="font-weight:bold; font-size:18px;">${p} x${data.potions[p]}</div>
+                    <div style="font-size:12px; color:#c084fc;">${potionEffects[p].desc}</div>
+                </div>
+                <button onclick="usePotion('${p}')" style="background:#a855f7; color:black; font-weight:bold; border:none; padding:8px 15px;">使う</button>
+            `;
+            list.appendChild(div);
+        }
+    }
+
+    if(!hasPotion) {
+        list.innerHTML = "<p>ポーションを持っていません。ミントを醸造して作ってみよう！</p>";
+    }
+}
+
+function usePotion(pName){
+    if(!data.potions[pName] || data.potions[pName] <= 0) return;
+    
+    const effect = potionEffects[pName];
+    if(effect.type === "none"){
+        showNotification("何も起きなかった…");
+        return; // 消費させない、または消費させたい場合は上のif文の下に移動
+    }
+
+    data.potions[pName]--;
+
+    if(effect.type === "instant"){
+        effect.action();
+        showNotification("✨ " + pName + " を使用しました！");
+    } else if (effect.type === "buff"){
+        data.activeBuffs[pName] = Date.now() + effect.duration;
+        showNotification("🔥 " + pName + " の効果が発動！");
+    }
+
+    updateUI();
+    openBag();
+}
+
 window.addEventListener("load",()=>{
     if(data && data.nickname){
         document.getElementById("nicknameScreen").style.display="none";
