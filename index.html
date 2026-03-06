@@ -7,288 +7,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-margin:0;
-font-family:'Orbitron',sans-serif;
-background: radial-gradient(circle at top,#140a2a,#000);
-color:white;
-overflow-x:hidden;
-}
-
-h1{
-text-align:center;
-font-size:40px;
-color:#e9d5ff;
-text-shadow:0 0 25px #a855f7,0 0 50px #7e22ce;
-}
-
-#game{
-padding:20px;
-max-width: 1200px;
-margin: 0 auto;
-}
-
-.menu-bar {
-display: flex;
-flex-wrap: wrap;
-gap: 15px;
-margin-bottom: 20px;
-justify-content: center;
-}
-
-.menu-btn {
-background: linear-gradient(45deg, #1f0b3b, #3b0764);
-border: 2px solid #a855f7;
-color: #e9d5ff;
-padding: 10px 20px;
-font-size: 16px;
-font-weight: bold;
-border-radius: 8px;
-cursor: pointer;
-text-transform: uppercase;
-letter-spacing: 1px;
-box-shadow: 0 0 10px rgba(168, 85, 247, 0.3), inset 0 0 10px rgba(168, 85, 247, 0.2);
-transition: all 0.3s ease;
-display: flex;
-align-items: center;
-gap: 8px;
-}
-
-.menu-btn:hover:not(:disabled) {
-background: linear-gradient(45deg, #3b0764, #7e22ce);
-box-shadow: 0 0 20px #a855f7, inset 0 0 15px #c084fc;
-transform: translateY(-2px);
-color: white;
-}
-
-.menu-btn:disabled {
-opacity: 0.5;
-cursor: not-allowed;
-}
-
-.destroy-btn {
-border-color: #ef4444;
-color: #fca5a5;
-box-shadow: 0 0 10px rgba(239, 68, 68, 0.3), inset 0 0 10px rgba(239, 68, 68, 0.2);
-}
-.destroy-btn:hover:not(:disabled) {
-background: linear-gradient(45deg, #7f1d1d, #b91c1c);
-box-shadow: 0 0 20px #ef4444, inset 0 0 15px #f87171;
-color: white;
-}
-
-.status-bar {
-display: flex;
-flex-wrap: wrap;
-gap: 20px;
-background: rgba(255,255,255,0.05);
-padding: 15px;
-border-radius: 10px;
-border: 1px solid rgba(168,85,247,0.3);
-margin-bottom: 20px;
-font-size: 18px;
-}
-
-#buffStatus {
-color: #c084fc;
-font-weight: bold;
-margin-bottom: 10px;
-min-height: 24px;
-}
-
-#stocks{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
-gap: 15px;
-}
-
-.card{
-background:rgba(255,255,255,0.05);
-border:1px solid #a855f7;
-padding:15px;
-border-radius:15px;
-box-shadow:0 0 20px rgba(168,85,247,0.3);
-transition:0.3s;
-position:relative;
-}
-
-.card:hover{
-transform:scale(1.02);
-box-shadow:0 0 30px rgba(168,85,247,0.6);
-}
-
-.card-actions {
-display: flex;
-flex-direction: column;
-gap: 5px;
-margin-top: 10px;
-}
-
-.btn-group {
-display: flex;
-gap: 5px;
-}
-
-button{
-background:black;
-border:1px solid #a855f7;
-color:#c084fc;
-padding:6px 10px;
-cursor:pointer;
-transition:0.3s;
-border-radius: 4px;
-flex: 1;
-}
-
-button:hover:not(:disabled){
-background:#a855f7;
-color:black;
-box-shadow:0 0 10px #a855f7;
-}
-
-button:disabled{
-border-color:#444;
-color:#666;
-cursor:not-allowed;
-box-shadow:none;
-}
-
-.unlockBtn{
-width: 100%;
-padding: 10px;
-font-weight: bold;
-animation:unlockGlow 1.5s infinite alternate;
-}
-
-@keyframes unlockGlow{
-from{box-shadow:0 0 5px #a855f7;}
-to{box-shadow:0 0 20px #a855f7;}
-}
-
-.locked{
-opacity:0.4;
-filter: grayscale(0.8);
-}
-
-canvas{
-background:rgba(0,0,0,0.5);
-border:1px solid rgba(168,85,247,0.3);
-border-radius: 10px;
-margin-top:10px;
-}
-
-#allGraph{
-width:100%;
-height:300px;
-}
-
-#legend{
-display:flex;
-flex-wrap:wrap;
-gap:10px;
-margin-top: 10px;
-margin-bottom:20px;
-}
-
-.legend-item{
-cursor:pointer;
-padding:5px 10px;
-border:1px solid #a855f7;
-color:#c084fc;
-border-radius:5px;
-font-size:14px;
-transition: 0.2s;
-}
-
-.legend-item:hover{
-background:#7e22ce;
-color:white;
-}
-
-.legend-item.hidden-stock{
-opacity: 0.4;
-border-style: dashed;
-}
-
-#notificationContainer {
-position:fixed;
-bottom:20px;
-right:20px;
-z-index:5000;
-display:flex;
-flex-direction:column;
-gap:10px;
-pointer-events:none;
-}
-
-.modal-screen {
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.9);
-backdrop-filter: blur(5px);
-padding:40px;
-z-index:3000;
-overflow:auto;
-display:none;
-flex-direction:column;
-align-items:center;
-}
-
-.modal-content {
-background: #110622;
-border: 2px solid #a855f7;
-border-radius: 15px;
-padding: 30px;
-width: 80%;
-max-width: 600px;
-box-shadow: 0 0 40px rgba(168,85,247,0.4);
-}
-
-.modal-close {
-margin-top: 20px;
-padding: 10px 30px;
-font-size: 16px;
-background: transparent;
-}
-
-.list-item {
-border:1px solid #a855f7;
-padding:15px;
-margin-bottom:10px;
-border-radius:10px;
-background: rgba(255,255,255,0.02);
-display: flex;
-justify-content: space-between;
-align-items: center;
-}
-
-select {
-background: black;
-color: white;
-border: 1px solid #a855f7;
-padding: 10px;
-font-size: 16px;
-border-radius: 5px;
-width: 100%;
-margin-bottom: 15px;
-}
-
-/* チュートリアル用のスタイル */
-.tutorial-section {
-margin-bottom: 20px;
-border-left: 4px solid #a855f7;
-padding-left: 15px;
-background: rgba(168,85,247,0.05);
-padding: 15px;
-border-radius: 0 10px 10px 0;
-}
-.tutorial-section h3 {
-margin-top: 0;
-color: #e9d5ff;
-display: flex;
-align-items: center;
-gap: 10px;
-}
+body{ margin:0; font-family:'Orbitron',sans-serif; background: radial-gradient(circle at top,#140a2a,#000); color:white; overflow-x:hidden; }
+h1{ text-align:center; font-size:40px; color:#e9d5ff; text-shadow:0 0 25px #a855f7,0 0 50px #7e22ce; }
+#game{ padding:20px; max-width: 1200px; margin: 0 auto; }
+.menu-bar { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; justify-content: center; }
+.menu-btn { background: linear-gradient(45deg, #1f0b3b, #3b0764); border: 2px solid #a855f7; color: #e9d5ff; padding: 10px 20px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 0 10px rgba(168, 85, 247, 0.3), inset 0 0 10px rgba(168, 85, 247, 0.2); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
+.menu-btn:hover:not(:disabled) { background: linear-gradient(45deg, #3b0764, #7e22ce); box-shadow: 0 0 20px #a855f7, inset 0 0 15px #c084fc; transform: translateY(-2px); color: white; }
+.menu-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.destroy-btn { border-color: #ef4444; color: #fca5a5; box-shadow: 0 0 10px rgba(239, 68, 68, 0.3), inset 0 0 10px rgba(239, 68, 68, 0.2); }
+.destroy-btn:hover:not(:disabled) { background: linear-gradient(45deg, #7f1d1d, #b91c1c); box-shadow: 0 0 20px #ef4444, inset 0 0 15px #f87171; color: white; }
+.status-bar { display: flex; flex-wrap: wrap; gap: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; border: 1px solid rgba(168,85,247,0.3); margin-bottom: 20px; font-size: 18px; }
+#buffStatus { color: #c084fc; font-weight: bold; margin-bottom: 10px; min-height: 24px; }
+#stocks{ display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap: 15px; }
+.card{ background:rgba(255,255,255,0.05); border:1px solid #a855f7; padding:15px; border-radius:15px; box-shadow:0 0 20px rgba(168,85,247,0.3); transition:0.3s; position:relative; }
+.card:hover{ transform:scale(1.02); box-shadow:0 0 30px rgba(168,85,247,0.6); }
+.card-actions { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
+.btn-group { display: flex; gap: 5px; }
+button{ background:black; border:1px solid #a855f7; color:#c084fc; padding:6px 10px; cursor:pointer; transition:0.3s; border-radius: 4px; flex: 1; }
+button:hover:not(:disabled){ background:#a855f7; color:black; box-shadow:0 0 10px #a855f7; }
+button:disabled{ border-color:#444; color:#666; cursor:not-allowed; box-shadow:none; }
+.unlockBtn{ width: 100%; padding: 10px; font-weight: bold; animation:unlockGlow 1.5s infinite alternate; }
+@keyframes unlockGlow{ from{box-shadow:0 0 5px #a855f7;} to{box-shadow:0 0 20px #a855f7;} }
+.locked{ opacity:0.4; filter: grayscale(0.8); }
+canvas{ background:rgba(0,0,0,0.5); border:1px solid rgba(168,85,247,0.3); border-radius: 10px; margin-top:10px; }
+#allGraph{ width:100%; height:300px; }
+#legend{ display:flex; flex-wrap:wrap; gap:10px; margin-top: 10px; margin-bottom:20px; }
+.legend-item{ cursor:pointer; padding:5px 10px; border:1px solid #a855f7; color:#c084fc; border-radius:5px; font-size:14px; transition: 0.2s; }
+.legend-item:hover{ background:#7e22ce; color:white; }
+.legend-item.hidden-stock{ opacity: 0.4; border-style: dashed; }
+#notificationContainer { position:fixed; bottom:20px; right:20px; z-index:5000; display:flex; flex-direction:column; gap:10px; pointer-events:none; }
+.modal-screen { position:fixed; inset:0; background:rgba(0,0,0,0.9); backdrop-filter: blur(5px); padding:40px; z-index:3000; overflow:auto; display:none; flex-direction:column; align-items:center; }
+.modal-content { background: #110622; border: 2px solid #a855f7; border-radius: 15px; padding: 30px; width: 80%; max-width: 600px; box-shadow: 0 0 40px rgba(168,85,247,0.4); }
+.modal-close { margin-top: 20px; padding: 10px 30px; font-size: 16px; background: transparent; }
+.list-item { border:1px solid #a855f7; padding:15px; margin-bottom:10px; border-radius:10px; background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center; }
+select { background: black; color: white; border: 1px solid #a855f7; padding: 10px; font-size: 16px; border-radius: 5px; width: 100%; margin-bottom: 15px; }
+.tutorial-section { margin-bottom: 20px; border-left: 4px solid #a855f7; padding-left: 15px; background: rgba(168,85,247,0.05); padding: 15px; border-radius: 0 10px 10px 0; }
+.tutorial-section h3 { margin-top: 0; color: #e9d5ff; display: flex; align-items: center; gap: 10px; }
 </style>
 </head>
 
@@ -317,7 +71,7 @@ gap: 10px;
 <div class="status-bar">
     <div>💰 所持金: <span id="money"></span>G</div>
     <div>⭐ ポイント: <span id="points"></span></div>
-    <div>💎 ミント: <span id="mint"></span></div>
+    <div>💎 ミントの破片: <span id="mint"></span></div>
     <div>🌿 異星のミント: <span id="alienMints"></span></div>
     <div>⏳ 変動まで: <span id="timer"></span></div>
 </div>
@@ -335,31 +89,22 @@ gap: 10px;
 <div id="tutorialScreen" class="modal-screen">
     <div class="modal-content">
         <h2 style="margin-top:0; text-align:center; color:#e9d5ff;">🚀 遊び方ガイド</h2>
-        
         <div class="tutorial-section">
             <h3>📈 1. 株を売買して稼ごう！</h3>
-            <p>安い時に買い、高い時に売るのが基本です。価格は1分ごとに自動で変動します。<br>
-            株を売って<b>利益を出すと「ミント」を獲得</b>できます！</p>
+            <p>安い時に買い、高い時に売るのが基本。株を売って利益を出すと<b>「ミントの破片」</b>を獲得できます！</p>
         </div>
-
         <div class="tutorial-section">
             <h3>🎰 2. ガチャで素材を集めよう！</h3>
-            <p>集めた「ミント」を使ってガチャを回し、様々な種類のレアなミントを集めましょう。</p>
+            <p>集めた「ミントの破片」でガチャを回し、様々なレアミントを集めましょう。</p>
         </div>
-
         <div class="tutorial-section">
             <h3>🧪 3. ポーションを醸造しよう！</h3>
-            <p>「ベーシックミント」1つと、集めた任意のミント2つを合成して強力なポーションを作れます。<br>
-            <b>レアなミントを使うほど、強力なポーションができやすくなります。</b></p>
+            <p>「ベーシックミント」×1 と任意のミント×2 を合成して強力なバフアイテムを作れます。</p>
         </div>
-
         <div class="tutorial-section">
-            <h3>💥 4. 惑星の『破壊』と再構築</h3>
-            <p>特定のミントを組み合わせた時のみできる「異質なポーション」。<br>
-            これを使用中のみ、すべてをリセットする<b>「破壊」</b>が可能になります。<br>
-            破壊すると、所持ミント数に応じて<b>「異星のミント（永続的な利益増加バフ）」</b>を得て更に所持金を増やすことができます！</p>
+            <h3>💥 4. 世界の『破壊』と再構築</h3>
+            <p>特定のミントを組み合わせると「異質なポーション」が完成します。使用中のみ世界をリセットする<b>「破壊」</b>が可能に！破壊すると永続バフ<b>「🌿異星のミント」</b>を得て強くてニューゲームができ、新たなミントも解放されます。</p>
         </div>
-
         <button class="menu-btn" style="width:100%; justify-content:center; margin-top:20px;" onclick="closeTutorial()">ゲームを始める！</button>
     </div>
 </div>
@@ -377,8 +122,8 @@ gap: 10px;
         <h2 style="margin-top:0;">🎰 SPACE GACHA</h2>
         <div id="gachaResult" style="font-size:40px; margin:30px 0; text-shadow:0 0 20px #a855f7;">READY</div>
         <div style="display:flex; gap:10px; justify-content:center;">
-            <button id="gachaBtn" class="menu-btn" onclick="spinGacha(1)">1回 (20ミント)</button>
-            <button id="gacha10Btn" class="menu-btn" onclick="spinGacha(10)">10連 (200ミント)</button>
+            <button id="gachaBtn" class="menu-btn" onclick="spinGacha(1)">1回 (20破片)</button>
+            <button id="gacha10Btn" class="menu-btn" onclick="spinGacha(10)">10連 (200破片)</button>
         </div>
         <button class="modal-close" onclick="closeScreen('gachaScreen')">閉じる</button>
     </div>
@@ -400,7 +145,6 @@ gap: 10px;
         
         <label>追加素材 1:</label>
         <select id="brewMat1"></select>
-
         <label>追加素材 2:</label>
         <select id="brewMat2"></select>
 
@@ -441,14 +185,18 @@ const potionEffects = {
     "⭐ 知識の霊薬": { desc: "ポイント即座に +5,000P", type: "instant", action: () => { data.points += 5000; } },
     "📈 ハイパードライブ薬": { desc: "3分間、株価の変動幅が2倍になる", type: "buff", duration: 180000 },
     "🛡 プロテクトジェル": { desc: "3分間、株価下落時の下落幅を半減", type: "buff", duration: 180000 },
-    "💎 ミントブースト": { desc: "3分間、売却時のミント獲得量2倍", type: "buff", duration: 180000 },
+    "💎 ミントブースト": { desc: "3分間、売却時のミントの破片獲得量2倍", type: "buff", duration: 180000 },
     "🚀 ギャラクシーブル": { desc: "3分間、市場が「好景気」になり株価が上がりやすくなる", type: "buff", duration: 180000 },
     "⏳ タイムワープ薬": { desc: "時間を進め、即座に20回分の価格変動を起こす", type: "instant", action: () => {
         for(let i=0; i<20; i++) updatePrices(true);
         updateUI();
     }},
     "✨ 奇跡の雫": { desc: "所持金 +1,000,000G、ポイント +50,000P を得る", type: "instant", action: () => { data.money += 1000000; data.points += 50000; } },
-    "❓ 異質なポーション": { desc: "2分間、世界を「破壊」する権利を得る...", type: "buff", duration: 120000 }
+    "❓ 異質なポーション": { desc: "2分間、世界を「破壊」する権利を得る...", type: "buff", duration: 120000 },
+    // 破壊後 追加ポーション
+    "🌍 星の恵み": { desc: "3分間、ミントの破片獲得量が3倍になる", type: "buff", duration: 180000 },
+    "🌋 ヴォルカニック・ブル": { desc: "3分間、株価が超絶上がりやすくなる", type: "buff", duration: 180000 },
+    "🧂 ソルトバリア": { desc: "3分間、株価の下落を完全に無効化", type: "buff", duration: 180000 }
 };
 
 if(data){
@@ -464,11 +212,13 @@ if(data){
     if(data.alienMints === undefined) data.alienMints = 0;
     if(data.tutorialSeen === undefined) data.tutorialSeen = false;
     
-    // 互換性パッチ
-    if(data.mintInventory["宇宙ミント"]){
-        data.mintInventory["ギャラクシーミント"] = (data.mintInventory["ギャラクシーミント"] || 0) + data.mintInventory["宇宙ミント"];
-        delete data.mintInventory["宇宙ミント"];
-    }
+    // 図鑑（周回引継ぎ用）の初期化
+    if(!data.discoveredMints) data.discoveredMints = [];
+    if(!data.discoveredPotions) data.discoveredPotions = [];
+    
+    // 既存データを図鑑に反映
+    for(let m in data.mintInventory) if(data.mintInventory[m] > 0 && !data.discoveredMints.includes(m)) data.discoveredMints.push(m);
+    for(let p in data.potions) if(data.potions[p] > 0 && !data.discoveredPotions.includes(p)) data.discoveredPotions.push(p);
 
     data.stocks.forEach((stock, i) => {
         if(stock.buyPrice === undefined) stock.buyPrice = stock.price;
@@ -481,10 +231,11 @@ if(data){
     });
 } else {
     data={
-        nickname:"", money:10000, points:0, mint:0,
+        nickname:"", money:30000, points:0, mint:0,
         mintInventory:{}, potions:{}, activeBuffs:{}, stocks:[],
         lastUpdate:Date.now(), totalBuys:0, gachaCount:0, achievementsUnlocked:[],
-        brewCount:0, alienPotionCount:0, alienMints:0, tutorialSeen: false
+        brewCount:0, alienPotionCount:0, alienMints:0, tutorialSeen: false,
+        discoveredMints: [], discoveredPotions: []
     };
 
     for(let i=0;i<10;i++){
@@ -500,9 +251,7 @@ if(data){
     save();
 }
 
-function save(){
-    localStorage.setItem("spaceStockData",JSON.stringify(data));
-}
+function save(){ localStorage.setItem("spaceStockData",JSON.stringify(data)); }
 
 function startGame(){
     let name=document.getElementById("nicknameInput").value;
@@ -515,21 +264,11 @@ function startGame(){
     document.getElementById("game").style.display="block";
     document.getElementById("playerName").innerText=data.nickname;
 
-    if(!data.tutorialSeen){
-        openScreen("tutorialScreen");
-    }
-
-    checkAchievements();
-    updateUI();
-    startTimers();
+    if(!data.tutorialSeen){ openScreen("tutorialScreen"); }
+    checkAchievements(); updateUI(); startTimers();
 }
 
-function closeTutorial(){
-    data.tutorialSeen = true;
-    save();
-    closeScreen("tutorialScreen");
-}
-
+function closeTutorial(){ data.tutorialSeen = true; save(); closeScreen("tutorialScreen"); }
 function startTimers(){
     if(!timerInterval) timerInterval = setInterval(updateTimer,1000);
     if(!priceCheckTimeout) checkPriceUpdate();
@@ -598,50 +337,38 @@ function updateUI(){
             const unlockBtn=document.createElement("button");
             unlockBtn.className="unlockBtn";
             unlockBtn.innerText=stock.unlockCost.toLocaleString()+"Pで解放";
-            
             if(data.points >= stock.unlockCost){
-                unlockBtn.disabled = false;
-                unlockBtn.onclick=()=>unlockStock(i);
+                unlockBtn.disabled = false; unlockBtn.onclick=()=>unlockStock(i);
             } else {
-                unlockBtn.disabled = true;
-                unlockBtn.style.animation = "none";
+                unlockBtn.disabled = true; unlockBtn.style.animation = "none";
             }
             card.appendChild(unlockBtn);
         }
         stocksDiv.appendChild(card);
     });
 
-    drawAllGraph();
-    drawLegend();
-    checkAchievements();
-    save();
+    drawAllGraph(); drawLegend(); checkAchievements(); save();
 }
 
 function buyStock(i,amount){
-    const stock=data.stocks[i];
-    const cost=stock.price*amount;
+    const stock=data.stocks[i]; const cost=stock.price*amount;
     if(data.money<cost) return;
 
     data.money-=cost;
     if(stock.owned === 0) stock.buyPrice = stock.price;
     else stock.buyPrice = Math.floor(((stock.buyPrice * stock.owned) + cost) / (stock.owned + amount));
     
-    stock.owned+=amount;
-    data.totalBuys++;
-    updateUI();
+    stock.owned+=amount; data.totalBuys++; updateUI();
 }
 
 function sellStock(i,amount){
-    const stock=data.stocks[i];
-    if(stock.owned<amount) return;
+    const stock=data.stocks[i]; if(stock.owned<amount) return;
 
     const sellPrice = stock.price;
     const diff = sellPrice - stock.buyPrice;
     let bonus = 0;
     
-    if(diff > 0 && data.alienMints > 0) {
-        bonus = Math.floor(diff * 0.02 * data.alienMints);
-    }
+    if(diff > 0 && data.alienMints > 0) bonus = Math.floor(diff * 0.02 * data.alienMints);
 
     const totalSaleValue = (sellPrice + bonus) * amount;
     data.money += totalSaleValue;
@@ -649,7 +376,11 @@ function sellStock(i,amount){
     const totalProfit = (diff + bonus) * amount;
     if(totalProfit > 0){
         let mintGain = Math.max(1, Math.floor(totalProfit / 10));
-        if(isBuffActive("💎 ミントブースト")) mintGain *= 2;
+        
+        // ミントの破片バフ計算
+        if(isBuffActive("🌍 星の恵み")) mintGain *= 3;
+        else if(isBuffActive("💎 ミントブースト")) mintGain *= 2;
+        
         data.mint += mintGain;
     }
 
@@ -660,20 +391,15 @@ function sellStock(i,amount){
 
 function unlockStock(i){
     if(data.points>=data.stocks[i].unlockCost){
-        data.points-=data.stocks[i].unlockCost;
-        data.stocks[i].unlocked=true;
-        updateUI();
+        data.points-=data.stocks[i].unlockCost; data.stocks[i].unlocked=true; updateUI();
     }
 }
 
 function checkPriceUpdate(){
-    const now=Date.now();
-    const elapsed = now - data.lastUpdate;
-
+    const now=Date.now(); const elapsed = now - data.lastUpdate;
     if(elapsed >= 60000){
         let updates = Math.floor(elapsed / 60000);
         if (updates > 30) updates = 30;
-        
         for(let i=0; i<updates; i++){ updatePrices(true); }
         data.lastUpdate = now - (elapsed % 60000);
         updateUI();
@@ -685,6 +411,8 @@ function updatePrices(skipUI = false){
     const isHyper = isBuffActive("📈 ハイパードライブ薬");
     const isProtect = isBuffActive("🛡 プロテクトジェル");
     const isBull = isBuffActive("🚀 ギャラクシーブル");
+    const isVolcanic = isBuffActive("🌋 ヴォルカニック・ブル");
+    const isSalt = isBuffActive("🧂 ソルトバリア");
 
     data.stocks.forEach(stock=>{
         let volatility = stock.price * 0.05; 
@@ -693,7 +421,10 @@ function updatePrices(skipUI = false){
         let change = (Math.random() - 0.5) * volatility;
         
         if(isBull) change = (Math.random() - 0.2) * volatility; 
+        if(isVolcanic) change = (Math.random() - 0.1) * volatility * 1.5; // 超絶ブル相場
+
         if(change < 0 && isProtect) change *= 0.5;
+        if(change < 0 && isSalt) change = 0; // 下落無効化
 
         stock.price = Math.max(10, Math.floor(stock.price + change));
         stock.history.push(stock.price);
@@ -715,16 +446,12 @@ function updateTimer(){
         if(data.activeBuffs[buff] > now){
             let remainBuff = Math.floor((data.activeBuffs[buff] - now) / 1000);
             buffText += `<span style="margin-right:15px; display:inline-block;">${buff}: 残り ${remainBuff}秒</span>`;
-        } else {
-            delete data.activeBuffs[buff];
-        }
+        } else { delete data.activeBuffs[buff]; }
     }
     document.getElementById("buffStatus").innerHTML = buffText;
 }
 
-function isBuffActive(buffName){
-    return data.activeBuffs[buffName] && data.activeBuffs[buffName] > Date.now();
-}
+function isBuffActive(buffName){ return data.activeBuffs[buffName] && data.activeBuffs[buffName] > Date.now(); }
 
 /* 破壊システム */
 function openDestroy() {
@@ -732,21 +459,19 @@ function openDestroy() {
         alert("今はまだ押しても反応しない...。\n異質なポーションの効果中のみ「破壊」が可能になるようだ。");
         return;
     }
-    if (confirm("【警告】\n本当にこの惑星を破壊しますか？\n\n実績と異星のミント以外、すべて（所持金、株、アイテム、バフ）が初期化されます。\n※持っている全ミント（所持ポイント＋アイテム合計）10個につき、異星のミントを1つ獲得します。")) {
+    if (confirm("【警告】\n本当に世界を破壊しますか？\n\n実績と異星のミント以外、すべて（所持金、株、アイテム、バフ）が初期化されます。\n※持っている全ミント（所持ポイント＋アイテム合計）10個につき、異星のミントを1つ獲得します。")) {
         doDestroy();
     }
 }
 
 function doDestroy() {
     let totalMints = data.mint;
-    for(let m in data.mintInventory) {
-        totalMints += data.mintInventory[m];
-    }
+    for(let m in data.mintInventory) { totalMints += data.mintInventory[m]; }
     let gained = Math.max(1, Math.floor(totalMints / 10));
     
     data.alienMints += gained;
     
-    data.money = 10000;
+    data.money = 30000;
     data.points = 0;
     data.mint = 0;
     data.mintInventory = {};
@@ -755,48 +480,36 @@ function doDestroy() {
     
     data.stocks.forEach((stock, i) => {
         let initialPrice = Math.floor(stockTemplates[i].basePrice * (0.9 + Math.random() * 0.2));
-        stock.price = initialPrice;
-        stock.owned = 0;
-        stock.unlocked = i < 3;
-        stock.history = [initialPrice];
-        stock.buyPrice = 0;
+        stock.price = initialPrice; stock.owned = 0; stock.unlocked = i < 3;
+        stock.history = [initialPrice]; stock.buyPrice = 0;
     });
 
-    showNotification(`💥 惑星が崩壊し、再構築されました...\n🌿 異星のミントを ${gained} 個獲得しました！`);
-    updateUI();
-    save();
+    showNotification(`💥 世界が崩壊し、再構築されました...\n🌿 異星のミントを ${gained} 個獲得し、新たなミントが世界に生まれました。`);
+    updateUI(); save();
 }
 
 function drawAllGraph(){
     const canvas=document.getElementById("allGraph");
     const ctx=canvas.getContext("2d");
-    canvas.width=canvas.clientWidth;
-    canvas.height=300;
+    canvas.width=canvas.clientWidth; canvas.height=300;
     ctx.clearRect(0,0,canvas.width,canvas.height);
-
     const colors=["cyan","lime","yellow","orange","red","magenta","white","blue","pink","lightgreen"];
 
     data.stocks.forEach((stock,index)=>{
         if(!stock.visible || !stock.history || stock.history.length === 0) return;
         const max=Math.max(...stock.history, 1);
         const min=Math.min(...stock.history, 0);
-        let range = max - min;
-        if(range === 0) range = 1; 
+        let range = max - min; if(range === 0) range = 1; 
 
-        ctx.beginPath();
-        ctx.strokeStyle=colors[index];
-        ctx.lineWidth=2;
-
+        ctx.beginPath(); ctx.strokeStyle=colors[index]; ctx.lineWidth=2;
         if(stock.history.length === 1){
             const y = canvas.height - ((stock.history[0] - min) / range) * canvas.height;
-            ctx.moveTo(0, y);
-            ctx.lineTo(canvas.width, y);
+            ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
         } else {
             stock.history.forEach((price,i)=>{
                 const x=(i/(stock.history.length-1))*canvas.width;
                 const y=canvas.height-((price-min)/range)*canvas.height;
-                if(i==0) ctx.moveTo(x,y);
-                else ctx.lineTo(x,y);
+                if(i==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
             });
         }
         ctx.stroke();
@@ -804,8 +517,7 @@ function drawAllGraph(){
 }
 
 function drawLegend(){
-    const legend=document.getElementById("legend");
-    legend.innerHTML="";
+    const legend=document.getElementById("legend"); legend.innerHTML="";
     data.stocks.forEach((stock,i)=>{
         const item=document.createElement("div");
         item.className="legend-item" + (stock.visible ? "" : " hidden-stock");
@@ -825,14 +537,10 @@ function showNotification(text){
     const container = document.getElementById("notificationContainer");
     const popup = document.createElement("div");
     popup.style.background = "linear-gradient(45deg, rgba(59, 7, 100, 0.95), rgba(126, 34, 206, 0.95))";
-    popup.style.border = "1px solid #c084fc";
-    popup.style.padding = "15px";
-    popup.style.borderRadius = "10px";
-    popup.style.boxShadow = "0 0 20px #a855f7";
-    popup.style.color = "white";
-    popup.style.fontWeight = "bold";
-    popup.style.opacity = "0";
-    popup.style.transform = "translateX(100px)";
+    popup.style.border = "1px solid #c084fc"; popup.style.padding = "15px";
+    popup.style.borderRadius = "10px"; popup.style.boxShadow = "0 0 20px #a855f7";
+    popup.style.color = "white"; popup.style.fontWeight = "bold";
+    popup.style.opacity = "0"; popup.style.transform = "translateX(100px)";
     popup.style.transition = "all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
     popup.innerText = text;
     container.appendChild(popup);
@@ -843,22 +551,15 @@ function showNotification(text){
 const achievements=[
     {name:"初投資",desc:"株を1回買う",check:()=>data.totalBuys>=1},
     {name:"トレーダー",desc:"100回購入",check:()=>data.totalBuys>=100},
-    {name:"投資家",desc:"500回購入",check:()=>data.totalBuys>=500},
-    {name:"資産家",desc:"2,000,000G",check:()=>data.money>=2000000},
     {name:"大富豪",desc:"1,000,000,000G",check:()=>data.money>=1000000000},
-    {name:"株コレクター",desc:"1つの株を100株保有",check:()=>data.stocks.some(s=>s.owned>=100)},
     {name:"宇宙投資家",desc:"全株解放",check:()=>data.stocks.every(s=>s.unlocked)},
-    {name:"ミント収集家",desc:"100ミント到達",check:()=>data.mint>=100},
     {name:"ガチャ体験",desc:"ガチャを引く",check:()=>data.gachaCount>=1},
-    {name:"ガチャジャンキー",desc:"ガチャを100回引く",check:()=>data.gachaCount>=100},
-    {name:"見習い錬金術師",desc:"ポーションを1回醸造",check:()=>data.brewCount>=1},
-    {name:"熟練錬金術師",desc:"ポーションを25回醸造",check:()=>data.brewCount>=25},
     {name:"マスターアルケミスト",desc:"ポーションを50回醸造",check:()=>data.brewCount>=50},
-    {name:"未知との遭遇",desc:"異質なポーションを1回作成",check:()=>data.alienPotionCount>=1},
-    {name:"深淵を覗く者",desc:"異質なポーションを3回作成",check:()=>data.alienPotionCount>=3},
     {name:"世界の理を外れし者",desc:"異質なポーションを5回作成",check:()=>data.alienPotionCount>=5},
-    {name:"隠し: UME&TUKE",hidden:true,check:()=>data.nickname==="UME&TUKE"},
-    {name:"ブラックホール",hidden:true,check:()=>data.money<0}
+    // 新・図鑑埋め実績 (永続)
+    {name:"ミント図鑑コンプリート",desc:"すべての種類のミントをゲットする",check:()=>data.discoveredMints.length>=14},
+    {name:"ポーション図鑑コンプリート",desc:"すべてのポーションを作る",check:()=>data.discoveredPotions.length>=12},
+    {name:"隠し: UME&TUKE",hidden:true,check:()=>data.nickname==="UME&TUKE"}
 ];
 
 function checkAchievements(){
@@ -873,39 +574,44 @@ function checkAchievements(){
 
 function openAchievements(){
     openScreen("achievementScreen");
-    const list=document.getElementById("achievementList");
-    list.innerHTML="";
+    const list=document.getElementById("achievementList"); list.innerHTML="";
     achievements.forEach((a,i)=>{
-        const div=document.createElement("div");
-        div.className="list-item";
+        const div=document.createElement("div"); div.className="list-item";
         if(data.achievementsUnlocked.includes(i)){
             div.innerHTML=`<span>${a.name}</span> <span style="font-size:12px;color:#c084fc;">${a.hidden?"隠し実績解除！":a.desc}</span>`;
-        }else{
-            div.innerText="？？？？？？？？"; div.style.opacity = "0.5";
-        }
+        }else{ div.innerText="？？？？？？？？"; div.style.opacity = "0.5"; }
         list.appendChild(div);
     });
 }
 
-// ユーザー設定の確率
-const mintTable = [
-    {name:"ベーシックミント",rate:19}, {name:"ウォーターミント",rate:5}, {name:"チョコチップミント",rate:3},
-    {name:"ブラッドミント",rate:1}, {name:"青ミント",rate:20}, {name:"赤ミント",rate:20},
-    {name:"緑ミント",rate:20}, {name:"紫ミント",rate:7}, {name:"金ミント",rate:4},
-    {name:"ギャラクシーミント",rate:0.5}, {name:"ブラックホールミント",rate:0.5}
-];
+function getActiveMintTable() {
+    if (data.alienMints > 0) {
+        return [
+            {name:"ベーシックミント",rate:19}, {name:"ウォーターミント",rate:5}, {name:"チョコチップミント",rate:3},
+            {name:"ブラッドミント",rate:1}, {name:"青ミント",rate:19}, {name:"赤ミント",rate:19},
+            {name:"緑ミント",rate:19}, {name:"紫ミント",rate:7}, {name:"金ミント",rate:4},
+            {name:"ギャラクシーミント",rate:0.5}, {name:"ブラックホールミント",rate:0.5},
+            {name:"プラネットミント",rate:1}, {name:"マグマミント",rate:1}, {name:"ソルティミント",rate:1}
+        ];
+    } else {
+        return [
+            {name:"ベーシックミント",rate:19}, {name:"ウォーターミント",rate:5}, {name:"チョコチップミント",rate:3},
+            {name:"ブラッドミント",rate:1}, {name:"青ミント",rate:20}, {name:"赤ミント",rate:20},
+            {name:"緑ミント",rate:20}, {name:"紫ミント",rate:7}, {name:"金ミント",rate:4},
+            {name:"ギャラクシーミント",rate:0.5}, {name:"ブラックホールミント",rate:0.5}
+        ];
+    }
+}
 
 function openGacha() { openScreen("gachaScreen"); }
 function openMint(){
     openScreen("mintScreen");
-    const list=document.getElementById("mintList");
-    list.innerHTML="";
+    const list=document.getElementById("mintList"); list.innerHTML="";
     let hasMint = false;
     for(let m in data.mintInventory){
         if(data.mintInventory[m] > 0){
             hasMint = true;
-            const div=document.createElement("div");
-            div.className="list-item";
+            const div=document.createElement("div"); div.className="list-item";
             div.innerText=m+" : "+data.mintInventory[m]+"個";
             list.appendChild(div);
         }
@@ -916,16 +622,15 @@ function openMint(){
 function spinGacha(times){
     if(isGachaSpinning) return;
     const cost = 20 * times;
-    if(data.mint < cost){ alert("ミントが足りません"); return; }
+    if(data.mint < cost){ alert("ミントの破片が足りません"); return; }
     
-    data.mint -= cost;
-    isGachaSpinning = true;
-    updateUI();
+    data.mint -= cost; isGachaSpinning = true; updateUI();
     document.getElementById("gachaBtn").disabled = true;
     document.getElementById("gacha10Btn").disabled = true;
 
+    const currentMintTable = getActiveMintTable();
     const resultBox=document.getElementById("gachaResult");
-    const names=mintTable.map(m=>m.name);
+    const names=currentMintTable.map(m=>m.name);
     let count=0;
 
     const anim=setInterval(()=>{
@@ -938,7 +643,7 @@ function spinGacha(times){
             for(let i=0; i<times; i++) {
                 let rand=Math.random()*100;
                 let total=0; let drop="";
-                for(let m of mintTable){
+                for(let m of currentMintTable){
                     total+=m.rate;
                     if(rand<=total){ drop=m.name; break; }
                 }
@@ -946,6 +651,9 @@ function spinGacha(times){
                 if(!data.mintInventory[drop]) data.mintInventory[drop]=0;
                 data.mintInventory[drop]++;
                 data.gachaCount++;
+                
+                // 図鑑登録
+                if(!data.discoveredMints.includes(drop)) data.discoveredMints.push(drop);
             }
             
             if(times === 1) {
@@ -963,17 +671,16 @@ function spinGacha(times){
     },80);
 }
 
-// ユーザー設定のスコア (構文エラー修正済み)
 const mintScores = {
     "青ミント": 2, "赤ミント": 2, "ベーシックミント": 2, "緑ミント": 2,
     "ウォーターミント": 6, "紫ミント": 4, "金ミント": 7, "チョコチップミント": 10,
-    "ギャラクシーミント": 15, "ブラッドミント": 30, "ブラックホールミント": 30
+    "ギャラクシーミント": 15, "ブラッドミント": 30, "ブラックホールミント": 30,
+    "プラネットミント": 15, "マグマミント": 15, "ソルティミント": 15
 };
 
 function openBrew(){
     openScreen("brewScreen");
     document.getElementById("basicMintCount").innerText = (data.mintInventory["ベーシックミント"] || 0);
-    
     const mat1 = document.getElementById("brewMat1");
     const mat2 = document.getElementById("brewMat2");
     mat1.innerHTML = ""; mat2.innerHTML = "";
@@ -1012,18 +719,23 @@ function doBrew(){
 
     let result = "";
 
+    // レシピ判定
     if ((m1 === "ブラッドミント" && m2 === "ギャラクシーミント") || (m1 === "ギャラクシーミント" && m2 === "ブラッドミント")) {
         result = "❓ 異質なポーション";
         data.alienPotionCount++;
+    } else if (data.alienMints > 0 && m1 === "プラネットミント" && m2 === "プラネットミント") {
+        result = "🌍 星の恵み";
+    } else if (data.alienMints > 0 && m1 === "マグマミント" && m2 === "マグマミント") {
+        result = "🌋 ヴォルカニック・ブル";
+    } else if (data.alienMints > 0 && m1 === "ソルティミント" && m2 === "ソルティミント") {
+        result = "🧂 ソルトバリア";
     } else {
         let score = (mintScores[m1] || 1) + (mintScores[m2] || 1);
         let pool = [];
-
         if (score < 10) pool = ["⭐ 知識の霊薬", "📈 ハイパードライブ薬", "💰 黄金の雫"];
         else if (score < 20) pool = ["💰 黄金の雫", "🛡 プロテクトジェル", "⏳ タイムワープ薬"];
         else if (score < 40) pool = ["💎 ミントブースト", "🚀 ギャラクシーブル", "⏳ タイムワープ薬"];
         else pool = ["🚀 ギャラクシーブル", "✨ 奇跡の雫", "💎 ミントブースト"];
-        
         result = pool[Math.floor(Math.random() * pool.length)];
     }
 
@@ -1031,23 +743,22 @@ function doBrew(){
     data.potions[result]++;
     data.brewCount++;
     
+    // 図鑑登録
+    if(!data.discoveredPotions.includes(result)) data.discoveredPotions.push(result);
+    
     showNotification("🧪 " + result + " を醸造しました！");
-    checkAchievements();
-    save();
-    openBrew(); 
+    checkAchievements(); save(); openBrew(); 
 }
 
 function openBag(){
     openScreen("bagScreen");
-    const list = document.getElementById("bagList");
-    list.innerHTML = "";
+    const list = document.getElementById("bagList"); list.innerHTML = "";
     let hasPotion = false;
 
     for(let p in data.potions){
         if(data.potions[p] > 0){
             hasPotion = true;
-            const div = document.createElement("div");
-            div.className = "list-item";
+            const div = document.createElement("div"); div.className = "list-item";
             div.innerHTML = `
                 <div>
                     <div style="font-weight:bold; font-size:18px;">${p} x${data.potions[p]}</div>
@@ -1058,28 +769,19 @@ function openBag(){
             list.appendChild(div);
         }
     }
-
-    if(!hasPotion) {
-        list.innerHTML = "<p>ポーションを持っていません。ミントを醸造して作ってみよう！</p>";
-    }
+    if(!hasPotion) { list.innerHTML = "<p>ポーションを持っていません。ミントを醸造して作ってみよう！</p>"; }
 }
 
 function usePotion(pName){
     if(!data.potions[pName] || data.potions[pName] <= 0) return;
-    
-    const effect = potionEffects[pName];
-    data.potions[pName]--;
+    const effect = potionEffects[pName]; data.potions[pName]--;
 
     if(effect.type === "instant"){
-        effect.action();
-        showNotification("✨ " + pName + " を使用しました！");
+        effect.action(); showNotification("✨ " + pName + " を使用しました！");
     } else if (effect.type === "buff"){
-        data.activeBuffs[pName] = Date.now() + effect.duration;
-        showNotification("🔥 " + pName + " の効果が発動！");
+        data.activeBuffs[pName] = Date.now() + effect.duration; showNotification("🔥 " + pName + " の効果が発動！");
     }
-
-    updateUI();
-    openBag();
+    updateUI(); openBag();
 }
 
 window.addEventListener("load",()=>{
@@ -1087,13 +789,8 @@ window.addEventListener("load",()=>{
         document.getElementById("nicknameScreen").style.display="none";
         document.getElementById("game").style.display="block";
         document.getElementById("playerName").innerText=data.nickname;
-        
-        if(!data.tutorialSeen){
-            openScreen("tutorialScreen");
-        }
-
-        updateUI();
-        startTimers();
+        if(!data.tutorialSeen){ openScreen("tutorialScreen"); }
+        updateUI(); startTimers();
     }
 });
 </script>
