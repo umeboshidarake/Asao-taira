@@ -226,7 +226,7 @@ let loadedData = JSON.parse(localStorage.getItem("spaceStockData"));
 let data = {};
 
 if(!loadedData) {
-    data = { nickname:"", money:30000, points:0, mint:0, alienMints:0, mintInventory:{}, potions:{}, activeBuffs:{}, stocks:[], totalBuys:0, gachaCount:0, brewCount:0, alienPotionCount:0, discoveredMints:[], discoveredPotions:[], achievementsUnlocked:[], hiddenGraphItems:[], tempestCurse:false, nextTempestStrike:0 };
+    data = { nickname:"", money:30000, points:0, mint:0, alienMints:0, mintInventory:{}, potions:{}, activeBuffs:{}, stocks:[], totalBuys:0, gachaCount:0, brewCount:0, alienPotionCount:0, alienPotionUsed:false, discoveredMints:[], discoveredPotions:[], achievementsUnlocked:[], hiddenGraphItems:[], tempestCurse:false, nextTempestStrike:0 };
     for(let i=0;i<10;i++) data.stocks.push({ name: stockTemplates[i].name, desc: stockTemplates[i].desc, price: stockTemplates[i].basePrice, owned: 0, unlocked: i<3, unlockCost: 500+i*300, history: [stockTemplates[i].basePrice], buyPrice: 0, visible: i<3, vol: stockTemplates[i].vol, nextChange: 0 });
 } else {
     data = loadedData;
@@ -239,6 +239,7 @@ if(!loadedData) {
     if(!data.hiddenGraphItems) data.hiddenGraphItems = [];
     if(data.alienMints === undefined) data.alienMints = 0;
     if(data.alienPotionCount === undefined) data.alienPotionCount = 0;
+    if(data.alienPotionUsed === undefined) data.alienPotionUsed = false;
     if(data.tempestCurse === undefined) data.tempestCurse = false;
     if(data.nextTempestStrike === undefined) data.nextTempestStrike = 0;
     if(data.stocks) {
@@ -268,7 +269,7 @@ const potionEffects = {
     "🌟 ひらめきの霊薬": { desc: "即座に 500P 獲得！", type: "instant", action: (m=1) => { data.points += 500*m; } },
     "🍦 チョコミントポーション": { desc: "次に飲むポーションの効果が2倍になる！", type: "buff", duration: 600000 }, 
     "⏳ タイムポーション": { desc: "次の株価変動がすぐに起こる！", type: "instant", action: () => { data.nextChange = Date.now(); } },
-    "❓ 異質なポーション": { desc: "次元の境界を揺るがす...『破壊』が可能になる", type: "buff", duration: 999999999 },
+    "❓ 異質なポーション": { desc: "次元の境界を揺るがす...『破壊』が可能になり、禁忌の知識を得る", type: "buff", duration: 999999999 },
     "🌍 星の恵み": { desc: "3分間、ミントの破片獲得量が3倍", type: "buff", duration: 180000 },
     "🌋 ヴォルカニック・ブル": { desc: "3分間、株価が超絶上がりやすくなる", type: "buff", duration: 180000 },
     "🧂 ソルトバリア": { desc: "3分間、株価の下落を完全に無効化", type: "buff", duration: 180000 },
@@ -280,8 +281,9 @@ const potionEffects = {
     "🥤 コーラ": { desc: "即座に10回分の価格変動を起こし、ミント破片を300得る", type: "instant", action: (m=1) => { for(let i=0;i<10*m;i++) updatePrices(true); data.mint += 300 * m; updateUI(); }},
     "🍮 プリンウォーター": { desc: "5分間、ガチャでレアなミントが出やすくなる！", type: "buff", duration: 300000 },
     
-    // ▼ 今回追加した超・危険ポーション
-    "🌪️ テンペスト": { desc: "10分間利益が2倍になるが、株価が崩壊レベルの乱高下を起こす。さらに効果終了後も10分毎に相場が荒れ狂う呪い...", type: "buff", duration: 600000 }
+    // ▼ 今回追加・調整したポーション
+    "🌪️ テンペスト": { desc: "10分間利益が2倍になるが、株価が崩壊レベルの乱高下を起こす。効果終了後も10分毎に相場が荒れ狂う呪い...", type: "buff", duration: 600000 },
+    "🌌 ギャラクシーサワー": { desc: "5分間、異星のミントの隠された力(利益＆破片増加パッシブ)を100倍に増幅する", type: "buff", duration: 300000 }
 };
 
 // 醸造（ポーション作り）のレシピ
@@ -297,12 +299,12 @@ const treeRecipes = [
     { base: "🛠️ 炭酸のもと", m1: "スパイシーミント", m2: "任意", result: "🌶️ スパイシーサワー" },
     { base: "🛠️ 炭酸のもと", m1: "フロストミント", m2: "任意", result: "❄️ フロストエナジー" },
     { base: "🛠️ 炭酸のもと", m1: "焼け焦げたミント", m2: "スイーツミント", result: "🥤 コーラ" },
+    { base: "🛠️ 炭酸のもと", m1: "ギャラクシーミント", m2: "スパイシーミント", result: "🌌 ギャラクシーサワー" }, // 追加
     { base: "🛠️ お酒のもと", m1: "マダムミント", m2: "任意", result: "💰 成金ポーション" },
     { base: "🛠️ お酒のもと", m1: "ソルティミント", m2: "ウォーターミント", result: "🍸 ソルティドッグ" },
     { base: "🛠️ スイーツのもと", m1: "チョコチップミント", m2: "任意", result: "🍦 チョコミントポーション" },
     { base: "🛠️ スイーツのもと", m1: "ミルクミント", m2: "ミルクミント", result: "🍨 アイスクリームポーション" },
     { base: "🛠️ スイーツのもと", m1: "エッグミント", m2: "スイーツミント", result: "🍮 プリンウォーター" },
-    // ▼ 追加レシピ
     { base: "🛠️ ダークマターのもと", m1: "ブラッドミント", m2: "ブラックホールミント", result: "🌪️ テンペスト" },
     { base: "🛠️ ポーションのもと", m1: "任意", m2: "任意", result: "🎲 基本ポーション(ランダム)" }
 ];
@@ -313,7 +315,7 @@ const craftRecipes = [
     { result: "🛠️ スイーツのもと", m1: "スイーツミント", m2: "ベーシックミント" },
     { result: "🛠️ 炭酸のもと", m1: "ガスミント", m2: "ベーシックミント" },
     { result: "🛠️ お酒のもと", m1: "アルコールミント", m2: "ベーシックミント" },
-    { result: "🛠️ ダークマターのもと", m1: "ギャラクシーミント", m2: "ダークマター", requiresAlien: true }
+    { result: "🛠️ ダークマターのもと", m1: "ギャラクシーミント", m2: "ダークマター", requiresAlienUsed: true } // 解放条件を変更
 ];
 
 // --- 実績データ ---
@@ -400,16 +402,14 @@ function updateTimer() {
     document.getElementById("buffStatus").innerHTML = buffText.length > 0 ? "✨ 発動中: " + buffText.join(" / ") : "";
 }
 
-// ▼ テンペストの乱高下ロジックを追加
 function updatePrices(skipIntervalUpdate = false) {
     let isHealing = isBuffActive("💧 癒しの水");
     let isTempest = isBuffActive("🌪️ テンペスト");
     let isTempestStrike = false;
 
-    // テンペストの呪い（10分ごとに発作的に乱高下）
     if (!isTempest && data.tempestCurse && Date.now() >= data.nextTempestStrike) {
         isTempestStrike = true;
-        data.nextTempestStrike = Date.now() + 600000; // 次のストライクは10分後
+        data.nextTempestStrike = Date.now() + 600000;
         showNotification("🌪️ テンペストの後遺症が発作を起こした！相場が荒れ狂っている！");
     }
     
@@ -422,13 +422,10 @@ function updatePrices(skipIntervalUpdate = false) {
         let changePercent = (Math.random() * vol * 2) - vol; 
         
         if (isTempest || isTempestStrike) {
-            // 崩壊レベルの乱高下 (通常の10〜20倍の変動)
             let extremeVol = vol * (10 + Math.random() * 10);
             changePercent = (Math.random() * extremeVol * 2) - extremeVol;
-            // さらにたまに極端に飛ぶ
             if (Math.random() < 0.2) changePercent *= 2; 
         } else {
-            // 通常時の変動計算
             if(isHealing) changePercent += 0.01; 
             if(isBuffActive("🚀 ギャラクシーブル")) changePercent = (Math.random() * vol * 1.5); 
             if(isBuffActive("🌋 ヴォルカニック・ブル")) changePercent = (Math.random() * vol * 2.5); 
@@ -451,7 +448,10 @@ function updateUI() {
     document.getElementById("money").innerText = data.money.toLocaleString();
     document.getElementById("points").innerText = data.points;
     document.getElementById("mint").innerText = data.mint;
-    document.getElementById("alienMints").innerText = data.alienMints;
+    
+    // ▼ 異星のミントの隠しパッシブをUIにチラ見せ
+    let alienBonusStr = data.alienMints > 0 ? `<span style="font-size:12px; color:#a855f7; margin-left:5px;">[利益/破片 +${data.alienMints}%]</span>` : "";
+    document.getElementById("alienMints").innerHTML = data.alienMints + alienBonusStr;
     
     document.querySelector(".destroy-btn").disabled = !isBuffActive("❓ 異質なポーション");
 
@@ -531,9 +531,17 @@ function sellStock(idx, amount) {
     let revenue = stock.price * qty;
     let profit = revenue - (stock.buyPrice * qty);
     
-    // ▼ テンペストの利益2倍ロジックを追加
+    // バフ効果
     if(isBuffActive("🌪️ テンペスト") && profit > 0) profit = Math.floor(profit * 2);
     else if(isBuffActive("🍸 ソルティドッグ") && profit > 0) profit = Math.floor(profit * 1.5);
+    
+    // ▼ 異星のミントのパッシブ効果 ＆ ギャラクシーサワーの100倍増幅
+    let alienBonus = data.alienMints * 0.01;
+    if (isBuffActive("🌌 ギャラクシーサワー")) {
+        alienBonus *= 100; 
+    }
+    
+    if (profit > 0) profit = Math.floor(profit * (1 + alienBonus));
     
     data.money += (stock.buyPrice * qty) + profit;
     stock.owned -= qty;
@@ -543,6 +551,10 @@ function sellStock(idx, amount) {
         let mintGained = Math.ceil(profit / 100);
         if(isBuffActive("🌍 星の恵み")) mintGained *= 3;
         else if(isBuffActive("💎 ミントブースト")) mintGained *= 2;
+        
+        // 破片にも異星パッシブを適用
+        mintGained = Math.floor(mintGained * (1 + alienBonus));
+        
         data.mint += mintGained;
         showNotification(`📈 利益確定！ ${profit.toLocaleString()}Gの利益！ (破片+${mintGained})`);
     }
@@ -691,14 +703,12 @@ function spinGacha(times, isFree = false){
         resDiv.innerText = "✨ " + mintTypes[Math.floor(Math.random()*mintTypes.length)].name + " 抽出中... ✨";
         if(frame > 15){
             clearInterval(anim); isGachaSpinning = false;
-            
             const getStyle = (name) => {
                 let originalRate = getActiveMintTable().find(m => m.name === name).rate;
                 if(originalRate <= 0.5) return "legendary-drop";
                 if(originalRate <= 1.0) return "epic-drop";
                 return "";
             };
-
             if(times === 1) {
                 let styleClass = getStyle(results[0]);
                 resDiv.innerHTML = `<span class="${styleClass}">${results[0]}</span>`;
@@ -737,13 +747,16 @@ function openCraft() {
         </ul>
     `;
     
-    // ▼ 異質なポーションを作ったことがある場合、ダークマターのもとのヒントを開放
-    if (data.alienPotionCount > 0) {
+    // ▼ 異質なポーション使用時にのみ解放される「禁忌の記憶」
+    if (data.alienPotionUsed) {
         hintHTML += `
-            <p style="margin-top:10px; margin-bottom:5px; color:#ef4444; font-weight:bold;">【禁忌のレシピ】</p>
-            <ul style="margin:0; padding-left:20px; color:#fca5a5;">
-                <li>🌌ギャラクシー + 🌑ダークマター = 🛠️ ダークマターのもと</li>
-            </ul>
+            <div style="margin-top:15px; padding:10px; background:rgba(100,0,0,0.3); border:1px solid #ef4444; border-radius:5px; box-shadow: inset 0 0 10px #7f1d1d;">
+                <p style="margin-top:0; margin-bottom:5px; color:#f87171; font-weight:bold; text-shadow: 0 0 5px #ef4444; font-family: 'Courier New', monospace; letter-spacing: 2px;">【 脳 内 に 響 く 禁 忌 の 記 憶 】</p>
+                <ul style="margin:0; padding-left:20px; color:#fca5a5; font-family: 'Courier New', monospace; font-size: 13px; line-height:1.6;">
+                    <li style="text-shadow: 0 0 3px red;">🌌ｷﾞｬﾗｸｼｰ + 🌑ﾀﾞｰｸﾏﾀｰ = <span style="color:#ef4444; font-weight:bold;">🛠️ ﾀﾞｰｸﾏﾀｰのﾓﾄ</span></li>
+                    <li style="text-shadow: 0 0 3px red;">🛠️ ﾀﾞｰｸﾏﾀｰのﾓﾄ + 🩸ﾌﾞﾗｯﾄﾞ + 🕳️ﾌﾞﾗｯｸﾎｰﾙ = <span style="color:#ef4444; font-weight:bold;">🌪️ ﾃﾝﾍﾟｽﾄ</span></li>
+                </ul>
+            </div>
         `;
     }
     
@@ -764,13 +777,12 @@ function doCraft() {
     let recipe = craftRecipes.find(r => (r.m1 === m1 && r.m2 === m2) || (r.m1 === m2 && r.m2 === m1));
 
     if(recipe) {
-        // ▼ ダークマターのもとの作成制限
-        if (recipe.requiresAlien && (!data.alienPotionCount || data.alienPotionCount <= 0)) {
-            return showNotification("❌ この素材の組み合わせは、まだ理解できないようだ...");
+        // ▼ 異質なポーションを使用していないと作れない制限
+        if (recipe.requiresAlienUsed && !data.alienPotionUsed) {
+            return showNotification("❌ まだこのレシピを理解できる次元に達していない...");
         }
         
-        data.mintInventory[m1]--;
-        data.mintInventory[m2]--;
+        data.mintInventory[m1]--; data.mintInventory[m2]--;
         data.mintInventory[recipe.result] = (data.mintInventory[recipe.result] || 0) + 1;
         if(!data.discoveredMints.includes(recipe.result)) data.discoveredMints.push(recipe.result);
         showNotification(`✨ 合成成功！「${recipe.result}」を作成しました！`);
@@ -811,7 +823,6 @@ function doBrew(){
             else if(r.m1 === "任意") match = (r.m2 === m1 || r.m2 === m2);
             else if(r.m2 === "任意") match = (r.m1 === m1 || r.m1 === m2);
             else match = ((r.m1 === m1 && r.m2 === m2) || (r.m1 === m2 && r.m2 === m1));
-            
             if(match){ resultPotion = r.result; break; }
         }
     }
@@ -905,17 +916,22 @@ function usePotion(p){
         let mult = isBuffActive("🍦 チョコミントポーション") ? 2 : 1;
         if(p === "🍦 チョコミントポーション") mult = 1;
         
-        // ▼ テンペストの呪いをセット
         if (p === "🌪️ テンペスト") {
             data.tempestCurse = true;
-            data.nextTempestStrike = Date.now() + 600000; // 10分後から発作開始
+            data.nextTempestStrike = Date.now() + 600000;
             showNotification(`⚠️ 【警告】テンペストの効果により、相場が制御不能になりました...`);
+        }
+        
+        // ▼ 異質なポーション使用時に禁忌のレシピ解放
+        if (p === "❓ 異質なポーション" && !data.alienPotionUsed) {
+            data.alienPotionUsed = true;
+            showNotification("🧠 ヴヴヴ...!! 宇宙の真理に触れ、『禁忌のレシピ』を理解してしまった...");
         }
 
         if(effect.type === "instant") { effect.action(mult); }
         else if(effect.type === "buff") { data.activeBuffs[p] = Date.now() + (effect.duration * mult); }
         
-        if (p !== "🌪️ テンペスト") showNotification(`🧪 「${p}」を使用した！`);
+        if (p !== "🌪️ テンペスト" && p !== "❓ 異質なポーション") showNotification(`🧪 「${p}」を使用した！`);
     } else { showNotification(`🧪 「${p}」を飲んだが、特に何も起きなかった...`); }
     updateUI(); save(); openBag();
 }
@@ -930,9 +946,7 @@ function openDestroy(){
 function doDestroy(){
     data.alienMints = (data.alienMints || 0) + 1;
     data.money = 30000; data.points = 0;
-    // ▼ 破壊でテンペストの呪いを浄化
-    data.tempestCurse = false; 
-    data.nextTempestStrike = 0;
+    data.tempestCurse = false; data.nextTempestStrike = 0;
 
     data.stocks.forEach((s, idx) => {
         s.owned = 0; s.buyPrice = 0; s.unlocked = idx < 3; s.visible = idx < 3; 
@@ -980,6 +994,10 @@ function showNotification(msg){
 
 function openTutorial(){ openScreen("tutorialScreen"); }
 
+window.onload = () => { if(data.nickname) startGame(); };
+</script>
+</body>
+</html>
 window.onload = () => { if(data.nickname) startGame(); };
 </script>
 </body>
