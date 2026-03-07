@@ -319,27 +319,99 @@ const craftRecipes = [
 ];
 
 // --- 実績データ ---
+// --- 実績データ (合計70個) ---
 const achievements = [
+    // ▼ 取引回数系
     { name: "初めての取引", desc: "株を1回購入する", check: () => data.totalBuys >= 1 },
     { name: "デイトレーダー", desc: "株を50回購入する", check: () => data.totalBuys >= 50 },
     { name: "伝説の相場師", desc: "株を500回購入する", check: () => data.totalBuys >= 500 },
+    { name: "取引の鬼", desc: "株を1,000回購入する", check: () => data.totalBuys >= 1000 },
+    { name: "マシンガントレーダー", desc: "株を5,000回購入する", check: () => data.totalBuys >= 5000 },
+    { name: "取引の神", desc: "株を10,000回購入する", check: () => data.totalBuys >= 10000 },
+    { name: "市場の亡霊", desc: "株を50,000回購入する", check: () => data.totalBuys >= 50000 },
+
+    // ▼ 所持金系
     { name: "駆け出し投資家", desc: "所持金が 50,000G を突破する", check: () => data.money >= 50000 },
     { name: "大富豪への道", desc: "所持金が 100,000G を突破する", check: () => data.money >= 100000 },
     { name: "宇宙の長者", desc: "所持金が 1,000,000G を突破する", check: () => data.money >= 1000000 },
     { name: "銀河の覇者", desc: "所持金が 10,000,000G を突破する", check: () => data.money >= 10000000 },
+    { name: "億万長者", desc: "所持金が 100,000,000G を突破する", check: () => data.money >= 100000000 },
+    { name: "宇宙のセレブ", desc: "所持金が 500,000,000G を突破する", check: () => data.money >= 500000000 },
+    { name: "銀河銀行のVIP", desc: "所持金が 1,000,000,000G を突破する", check: () => data.money >= 1000000000 },
+    { name: "星をまたぐ富豪", desc: "所持金が 5,000,000,000G を突破する", check: () => data.money >= 5000000000 },
+    { name: "宇宙一の財力", desc: "所持金が 10,000,000,000G を突破する", check: () => data.money >= 10000000000 },
+    { name: "経済の支配者", desc: "所持金が 1,000,000,000,000G を突破する", check: () => data.money >= 1000000000000 },
+
+    // ▼ ポイント系
+    { name: "ポイントコレクター", desc: "ポイントを 10,000P 貯める", check: () => data.points >= 10000 },
+    { name: "ポイントマニア", desc: "ポイントを 50,000P 貯める", check: () => data.points >= 50000 },
+    { name: "知識の探求者", desc: "ポイントを 100,000P 貯める", check: () => data.points >= 100000 },
+    { name: "アカデミーの長", desc: "ポイントを 500,000P 貯める", check: () => data.points >= 500000 },
+    { name: "全知全能の片鱗", desc: "ポイントを 1,000,000P 貯める", check: () => data.points >= 1000000 },
+
+    // ▼ ミント破片系
+    { name: "破片拾い", desc: "ミント破片を 1,000 個貯める", check: () => data.mint >= 1000 },
+    { name: "ミントの小山", desc: "ミント破片を 10,000 個貯める", check: () => data.mint >= 10000 },
+    { name: "ミントの山脈", desc: "ミント破片を 50,000 個貯める", check: () => data.mint >= 50000 },
+    { name: "破片の海", desc: "ミント破片を 100,000 個貯める", check: () => data.mint >= 100000 },
+    { name: "ミント長者", desc: "ミント破片を 500,000 個貯める", check: () => data.mint >= 500000 },
+
+    // ▼ 銘柄解放系
     { name: "市場の開拓者", desc: "銘柄を5つ解放する", check: () => data.stocks.filter(s => s.unlocked).length >= 5 },
     { name: "全市場制覇", desc: "すべての銘柄を解放する", check: () => data.stocks.filter(s => s.unlocked).length >= 10 },
+
+    // ▼ ガチャ回数系
     { name: "ガチャ初心者", desc: "ガチャを 10 回回す", check: () => data.gachaCount >= 10 },
     { name: "ガチャ中毒", desc: "ガチャを 50 回回す", check: () => data.gachaCount >= 50 },
     { name: "ガチャの神様", desc: "ガチャを 500 回回す", check: () => data.gachaCount >= 500 },
+    { name: "ガチャの申し子", desc: "ガチャを 1,000 回回す", check: () => data.gachaCount >= 1000 },
+    { name: "ガチャ廃人", desc: "ガチャを 5,000 回回す", check: () => data.gachaCount >= 5000 },
+    { name: "確率との戦い", desc: "ガチャを 10,000 回回す", check: () => data.gachaCount >= 10000 },
+    { name: "天井知らず", desc: "ガチャを 50,000 回回す", check: () => data.gachaCount >= 50000 },
+    { name: "ガチャが本体", desc: "ガチャを 100,000 回回す", check: () => data.gachaCount >= 100000 },
+
+    // ▼ 醸造回数系
     { name: "見習い錬金術師", desc: "ポーションを 5 回醸造する", check: () => data.brewCount >= 5 },
     { name: "熟練の錬金術師", desc: "ポーションを 50 回醸造する", check: () => data.brewCount >= 50 },
     { name: "ポーションマスター", desc: "ポーションを 100 回醸造する", check: () => data.brewCount >= 100 },
+    { name: "錬金術の極意", desc: "ポーションを 500 回醸造する", check: () => data.brewCount >= 500 },
+    { name: "薬物依存", desc: "ポーションを 1,000 回醸造する", check: () => data.brewCount >= 1000 },
+    { name: "ポーション工場", desc: "ポーションを 5,000 回醸造する", check: () => data.brewCount >= 5000 },
+    { name: "真理の錬金術師", desc: "ポーションを 10,000 回醸造する", check: () => data.brewCount >= 10000 },
+
+    // ▼ 図鑑系 (ミント)
+    { name: "ミント初心者", desc: "ミントや素材を 5 種類発見する", check: () => data.discoveredMints.length >= 5 },
+    { name: "ミント愛好家", desc: "ミントや素材を 10 種類発見する", check: () => data.discoveredMints.length >= 10 },
+    { name: "ミントコレクター", desc: "ミントや素材を 15 種類発見する", check: () => data.discoveredMints.length >= 15 },
+    { name: "ミント博士", desc: "ミントや素材を 20 種類発見する", check: () => data.discoveredMints.length >= 20 },
+    { name: "万物図鑑", desc: "すべてのミントと素材(29種)を発見する", check: () => data.discoveredMints.length >= 29 },
+
+    // ▼ 図鑑系 (ポーション)
+    { name: "薬草学の徒", desc: "ポーションを 5 種類発見する", check: () => data.discoveredPotions.length >= 5 },
+    { name: "魔法の薬瓶", desc: "ポーションを 10 種類発見する", check: () => data.discoveredPotions.length >= 10 },
+    { name: "秘薬コレクター", desc: "ポーションを 15 種類発見する", check: () => data.discoveredPotions.length >= 15 },
+    { name: "伝説の調合師", desc: "ポーションを 20 種類発見する", check: () => data.discoveredPotions.length >= 20 },
+    { name: "神のレシピ", desc: "すべてのポーション(25種)を発見する", check: () => data.discoveredPotions.length >= 25 },
+
+    // ▼ 特殊・特定アイテム獲得系
     { name: "禁忌に触れし者", desc: "ダークマターを抽出する", check: () => data.discoveredMints.includes("ダークマター") },
     { name: "狂気の科学者", desc: "異質なポーションを作成する", check: () => data.alienPotionCount >= 1 },
     { name: "嵐の呼び手", desc: "テンペストを作成する", check: () => data.discoveredPotions.includes("🌪️ テンペスト") },
+    { name: "宇宙の味", desc: "ギャラクシーサワーを作成する", check: () => data.discoveredPotions.includes("🌌 ギャラクシーサワー") },
+    { name: "スカッと爽快", desc: "コーラを作成する", check: () => data.discoveredPotions.includes("🥤 コーラ") },
+    { name: "ブラックホールへの誘い", desc: "ブラックホールミントを獲得する", check: () => data.discoveredMints.includes("ブラックホールミント") },
+    { name: "黄金の輝き", desc: "ゴールドミントを獲得する", check: () => data.discoveredMints.includes("ゴールドミント") },
+    { name: "甘党トレーダー", desc: "プリンウォーターを作成する", check: () => data.discoveredPotions.includes("🍮 プリンウォーター") },
+    { name: "時の支配者", desc: "タイムワープ薬を作成する", check: () => data.discoveredPotions.includes("⏳ タイムワープ薬") },
+
+    // ▼ 次元の超越（周回）系
     { name: "次元の超越者", desc: "世界を破壊し、異星のミントを手に入れる", check: () => data.alienMints >= 1 },
-    { name: "ループする宇宙", desc: "世界を5回破壊する", check: () => data.alienMints >= 5 }
+    { name: "ループする宇宙", desc: "世界を5回破壊する", check: () => data.alienMints >= 5 },
+    { name: "ループの達人", desc: "世界を10回破壊する", check: () => data.alienMints >= 10 },
+    { name: "次元の旅人", desc: "世界を20回破壊する", check: () => data.alienMints >= 20 },
+    { name: "パラレルワールド", desc: "世界を50回破壊する", check: () => data.alienMints >= 50 },
+    { name: "破壊神", desc: "世界を100回破壊する", check: () => data.alienMints >= 100 },
+    { name: "ループの果て", desc: "世界を500回破壊する", check: () => data.alienMints >= 500 }
 ];
 
 // --- メインシステム ---
@@ -994,10 +1066,6 @@ function showNotification(msg){
 
 function openTutorial(){ openScreen("tutorialScreen"); }
 
-window.onload = () => { if(data.nickname) startGame(); };
-</script>
-</body>
-</html>
 window.onload = () => { if(data.nickname) startGame(); };
 </script>
 </body>
