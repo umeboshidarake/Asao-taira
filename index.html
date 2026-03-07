@@ -199,10 +199,6 @@ select { background: black; color: white; border: 1px solid #a855f7; padding: 10
 
 <script>
 // --- 基本データと初期化 ---
-let data = JSON.parse(localStorage.getItem("spaceStockData")) || null;
-let timerInterval = null, priceCheckTimeout = null, isGachaSpinning = false;
-let graphPoints = [], hoveredPoint = null; 
-
 const stockTemplates = [
     { name: "アストロ通信", basePrice: 300, vol: 0.02 }, { name: "スターダスト鉱業", basePrice: 500, vol: 0.05 },
     { name: "未知文明発掘", basePrice: 800, vol: 0.18 }, { name: "ワープドライブ社", basePrice: 1200, vol: 0.08 },
@@ -210,8 +206,38 @@ const stockTemplates = [
     { name: "AIコア", basePrice: 3500, vol: 0.03 }, { name: "クアンタム", basePrice: 2500, vol: 0.06 },
     { name: "ツーリズム", basePrice: 600, vol: 0.10 }, { name: "オメガHD", basePrice: 10000, vol: 0.05 }
 ];
-
 const colors = ["#ef4444","#3b82f6","#10b981","#f59e0b","#8b5cf6","#ec4899","#06b6d4","#eab308","#a855f7","#6366f1"];
+
+// 【修正箇所】古いセーブデータの自動修復処理
+let loadedData = JSON.parse(localStorage.getItem("spaceStockData"));
+let data = {};
+
+if(!loadedData) {
+    // 新規プレイ時のデータ
+    data = { nickname:"", money:30000, points:0, mint:0, alienMints:0, mintInventory:{}, potions:{}, activeBuffs:{}, stocks:[], totalBuys:0, gachaCount:0, brewCount:0, alienPotionCount:0, discoveredMints:[], discoveredPotions:[], achievementsUnlocked:[], hiddenGraphItems:[] };
+    for(let i=0;i<10;i++) data.stocks.push({ name: stockTemplates[i].name, price: stockTemplates[i].basePrice, owned: 0, unlocked: i<3, unlockCost: 500+i*300, history: [stockTemplates[i].basePrice], buyPrice: 0, visible: i<3, vol: stockTemplates[i].vol, nextChange: 0 });
+} else {
+    // 古いデータがある場合は引き継ぎつつ、足りない項目を安全に補完する
+    data = loadedData;
+    if(!data.mintInventory) data.mintInventory = {};
+    if(!data.potions) data.potions = {};
+    if(!data.activeBuffs) data.activeBuffs = {};
+    if(!data.achievementsUnlocked) data.achievementsUnlocked = [];
+    if(!data.discoveredMints) data.discoveredMints = [];
+    if(!data.discoveredPotions) data.discoveredPotions = [];
+    if(!data.hiddenGraphItems) data.hiddenGraphItems = [];
+    if(data.alienMints === undefined) data.alienMints = 0;
+    if(data.alienPotionCount === undefined) data.alienPotionCount = 0;
+    if(data.stocks) {
+        data.stocks.forEach((s, idx) => {
+            if(!s.history) s.history = [s.price];
+            if(s.visible === undefined) s.visible = s.unlocked;
+        });
+    }
+}
+
+let timerInterval = null, priceCheckTimeout = null, isGachaSpinning = false;
+let graphPoints = [], hoveredPoint = null; 
 
 // --- ポーションとレシピ定義 ---
 const potionEffects = {
@@ -274,13 +300,6 @@ const achievements = [
     {name:"基礎研究",desc:"ポーションのもとを作成",check:()=>data.discoveredMints.includes("🛠️ ポーションのもと")},
     {name:"甘党への道",desc:"スイーツのもとを作成",check:()=>data.discoveredMints.includes("🛠️ スイーツのもと")}
 ];
-
-// 初期化群
-if(!data) {
-    data = { nickname:"", money:30000, points:0, mint:0, alienMints:0, mintInventory:{}, potions:{}, activeBuffs:{}, stocks:[], totalBuys:0, gachaCount:0, brewCount:0, alienPotionCount:0, discoveredMints:[], discoveredPotions:[], achievementsUnlocked:[], hiddenGraphItems:[] };
-    for(let i=0;i<10;i++) data.stocks.push({ name: stockTemplates[i].name, price: stockTemplates[i].basePrice, owned: 0, unlocked: i<3, unlockCost: 500+i*300, history: [stockTemplates[i].basePrice], buyPrice: 0, visible: i<3, vol: stockTemplates[i].vol, nextChange: 0 });
-}
-if(!data.hiddenGraphItems) data.hiddenGraphItems = [];
 
 function save(){ localStorage.setItem("spaceStockData",JSON.stringify(data)); checkAchievements(); }
 
@@ -428,7 +447,29 @@ function showNotification(text){
     c.appendChild(div); setTimeout(() => { if(div.parentElement) div.remove(); }, 3000);
 }
 
-// --- グラフ描画 (復活!) ---
+// --- 【修正箇所】破壊イベント ---
+function openDestroy() {
+    if(isBuffActive("❓ 異質なポーション")) {
+        if(confirm("警告：現在の宇宙を破壊し、異次元へ移行します。\n（異星のミントを獲得し、最初からになります）\n本当によろしいですか？")) {
+            showNotification("💥 宇宙が崩壊しました... 新たな次元へ移行します。");
+            setTimeout(() => {
+                let carryOverMints = (data.alienMints || 0) + 1; // 異星のミント獲得
+                localStorage.removeItem("spaceStockData");
+                
+                // データ初期化
+                data = { nickname:data.nickname, money:30000, points:0, mint:0, alienMints:carryOverMints, mintInventory:{}, potions:{}, activeBuffs:{}, stocks:[], totalBuys:0, gachaCount:0, brewCount:0, alienPotionCount:0, discoveredMints:[], discoveredPotions:[], achievementsUnlocked:[], hiddenGraphItems:[] };
+                for(let i=0;i<10;i++) data.stocks.push({ name: stockTemplates[i].name, price: stockTemplates[i].basePrice, owned: 0, unlocked: i<3, unlockCost: 500+i*300, history: [stockTemplates[i].basePrice], buyPrice: 0, visible: i<3, vol: stockTemplates[i].vol, nextChange: 0 });
+                
+                save();
+                location.reload(); // リロードして再スタート
+            }, 2000);
+        }
+    } else {
+        showNotification("⚠️ まだその時ではない…（『❓ 異質なポーション』の効果中のみ可能です）");
+    }
+}
+
+// --- グラフ描画 ---
 function toggleGraphVisibility(index) {
     const idx = data.hiddenGraphItems.indexOf(index);
     if(idx > -1) data.hiddenGraphItems.splice(idx, 1); else data.hiddenGraphItems.push(index);
@@ -503,7 +544,7 @@ document.getElementById("allGraph").addEventListener("mousemove", (e) => {
 document.getElementById("allGraph").addEventListener("mouseout", () => { hoveredPoint = null; drawAllGraph(); });
 
 
-// --- 実績表示 (復活!) ---
+// --- 実績表示 ---
 function checkAchievements() {
     achievements.forEach(a => {
         if(!data.achievementsUnlocked.includes(a.name) && a.check()) {
@@ -523,7 +564,7 @@ function openAchievements() {
     });
 }
 
-// --- ガチャとミント画面 (復活!) ---
+// --- ガチャとミント画面 ---
 function getActiveMintTable() { return [{name:"ベーシックミント",rate:19},{name:"ウォーターミント",rate:4},{name:"チョコチップミント",rate:3},{name:"ブラッドミント",rate:1},{name:"ブルーミント",rate:15},{name:"レッドミント",rate:15},{name:"グリーンミント",rate:15},{name:"パープルミント",rate:6},{name:"ミルクミント",rate:1},{name:"ゴールドミント",rate:4},{name:"ギャラクシーミント",rate:0.5},{name:"プラネットミント",rate:1},{name:"マグマミント",rate:1},{name:"ソルティミント",rate:1},{name:"スパイシーミント",rate:3},{name:"フロストミント",rate:3},{name:"マダムミント",rate:3},{name:"ダークマターミント",rate:0.1},{name:"スイーツミント",rate:1},{name:"ガスミント",rate:1},{name:"アルコールミント",rate:1},{name:"エッグミント",rate:0.5},{name:"焼け焦げたミント",rate:0.4}]; }
 
 function openTutorial() { openScreen("tutorialScreen"); }
@@ -532,7 +573,6 @@ function openMint() {
     openScreen("mintScreen");
     const list = document.getElementById("mintList"); list.innerHTML = "";
     const table = getActiveMintTable();
-    // 所持しているベース素材も表示
     const bases = ["🛠️ ポーションのもと", "🛠️ スイーツのもと", "🛠️ お酒のもと", "🛠️ 炭酸のもと"];
     bases.forEach(b => {
         let amt = data.mintInventory[b] || 0;
