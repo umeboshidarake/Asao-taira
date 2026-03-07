@@ -163,13 +163,8 @@ select { background: black; color: white; border: 1px solid #a855f7; padding: 10
 <div id="craftScreen" class="modal-screen">
     <div class="modal-content">
         <h2 style="margin-top:0; color:#ffd700; text-align:center;">🔨 素材合成 (ベース作り)</h2>
-        <div style="background:rgba(168,85,247,0.1); border:1px dashed #a855f7; padding:15px; border-radius:8px; margin-bottom:15px; font-size:14px; line-height:1.6;">
-            <strong>【ベース合成レシピ】</strong><br>
-            ・ベーシック ＋ ベーシック ＝ <strong>🛠️ ポーションのもと</strong><br>
-            ・ポーションのもと ＋ スイーツ ＝ <strong>🛠️ スイーツのもと</strong><br>
-            ・ポーションのもと ＋ アルコール ＝ <strong>🛠️ お酒のもと</strong><br>
-            ・ポーションのもと ＋ ガス ＝ <strong>🛠️ 炭酸のもと</strong>
-        </div>
+        <div id="craftRecipeHint" style="background:rgba(168,85,247,0.1); border:1px dashed #a855f7; padding:15px; border-radius:8px; margin-bottom:15px; font-size:14px; line-height:1.6;">
+            </div>
         <label>🟣 素材 1:</label><select id="craftMat1"></select>
         <label>🟣 素材 2:</label><select id="craftMat2"></select>
         <button class="menu-btn" style="width:100%; margin-top:10px; font-size:18px;" onclick="doCraft()">合成する</button>
@@ -200,24 +195,28 @@ select { background: black; color: white; border: 1px solid #a855f7; padding: 10
 <script>
 // --- 基本データと初期化 ---
 const stockTemplates = [
-    { name: "アストロ通信", basePrice: 300, vol: 0.02 }, { name: "スターダスト鉱業", basePrice: 500, vol: 0.05 },
-    { name: "未知文明発掘", basePrice: 800, vol: 0.18 }, { name: "ワープドライブ社", basePrice: 1200, vol: 0.08 },
-    { name: "ギャラクシー", basePrice: 1500, vol: 0.12 }, { name: "オールドアース", basePrice: 2000, vol: 0.04 },
-    { name: "AIコア", basePrice: 3500, vol: 0.03 }, { name: "クアンタム", basePrice: 2500, vol: 0.06 },
-    { name: "ツーリズム", basePrice: 600, vol: 0.10 }, { name: "オメガHD", basePrice: 10000, vol: 0.05 }
+    { name: "アストロ通信", basePrice: 300, vol: 0.02, desc: "安定感抜群だが成長は遅い。おしゃべり好き。" },
+    { name: "スターダスト鉱業", basePrice: 500, vol: 0.05, desc: "資源価格に左右される。無骨で真面目。" },
+    { name: "未知文明発掘", basePrice: 800, vol: 0.18, desc: "夢は大きいがリスクも高い。ロマンチスト。" },
+    { name: "ワープドライブ社", basePrice: 1200, vol: 0.08, desc: "技術革新で急騰の可能性。スピード狂。" },
+    { name: "ギャラクシー", basePrice: 1500, vol: 0.12, desc: "宇宙のエンタメ企業。派手好きで気まぐれ。" },
+    { name: "オールドアース", basePrice: 2000, vol: 0.04, desc: "地球の遺物を扱う。保守的で堅実。" },
+    { name: "AIコア", basePrice: 3500, vol: 0.03, desc: "冷徹なAIによる運用。感情を持たない安定株。" },
+    { name: "クアンタム", basePrice: 2500, vol: 0.06, desc: "量子技術の最先端。予測不能な変人。" },
+    { name: "ツーリズム", basePrice: 600, vol: 0.10, desc: "宇宙旅行ブームに乗る。明るく楽観的。" },
+    { name: "オメガHD", basePrice: 10000, vol: 0.05, desc: "宇宙を牛耳る巨大企業。傲慢だが実力は本物。" }
 ];
 const colors = ["#ef4444","#3b82f6","#10b981","#f59e0b","#8b5cf6","#ec4899","#06b6d4","#eab308","#a855f7","#6366f1"];
 
-// 【修正箇所】古いセーブデータの自動修復処理
 let loadedData = JSON.parse(localStorage.getItem("spaceStockData"));
 let data = {};
 
 if(!loadedData) {
     // 新規プレイ時のデータ
     data = { nickname:"", money:30000, points:0, mint:0, alienMints:0, mintInventory:{}, potions:{}, activeBuffs:{}, stocks:[], totalBuys:0, gachaCount:0, brewCount:0, alienPotionCount:0, discoveredMints:[], discoveredPotions:[], achievementsUnlocked:[], hiddenGraphItems:[] };
-    for(let i=0;i<10;i++) data.stocks.push({ name: stockTemplates[i].name, price: stockTemplates[i].basePrice, owned: 0, unlocked: i<3, unlockCost: 500+i*300, history: [stockTemplates[i].basePrice], buyPrice: 0, visible: i<3, vol: stockTemplates[i].vol, nextChange: 0 });
+    for(let i=0;i<10;i++) data.stocks.push({ name: stockTemplates[i].name, desc: stockTemplates[i].desc, price: stockTemplates[i].basePrice, owned: 0, unlocked: i<3, unlockCost: 500+i*300, history: [stockTemplates[i].basePrice], buyPrice: 0, visible: i<3, vol: stockTemplates[i].vol, nextChange: 0 });
 } else {
-    // 古いデータがある場合は引き継ぎつつ、足りない項目を安全に補完する
+    // 古いデータ引き継ぎと補完
     data = loadedData;
     if(!data.mintInventory) data.mintInventory = {};
     if(!data.potions) data.potions = {};
@@ -232,6 +231,7 @@ if(!loadedData) {
         data.stocks.forEach((s, idx) => {
             if(!s.history) s.history = [s.price];
             if(s.visible === undefined) s.visible = s.unlocked;
+            if(!s.desc) s.desc = stockTemplates[idx].desc; // 失われた説明文を復活
         });
     }
 }
@@ -239,7 +239,6 @@ if(!loadedData) {
 let timerInterval = null, priceCheckTimeout = null, isGachaSpinning = false;
 let graphPoints = [], hoveredPoint = null; 
 
-// --- ポーションとレシピ定義 ---
 const potionEffects = {
     "💰 黄金の雫": { desc: "所持金即座に +100,000G", type: "instant", action: (m=1) => data.money += 100000 * m },
     "⭐ 知識の霊薬": { desc: "ポイント即座に +5,000P", type: "instant", action: (m=1) => data.points += 5000 * m },
@@ -303,7 +302,6 @@ const achievements = [
 
 function save(){ localStorage.setItem("spaceStockData",JSON.stringify(data)); checkAchievements(); }
 
-// --- ゲーム進行コア関数 ---
 function startGame(){
     let name=document.getElementById("nicknameInput").value; data.nickname = name || "名無しトレーダー";
     document.getElementById("nicknameScreen").style.display="none"; document.getElementById("game").style.display="block";
@@ -381,7 +379,9 @@ function updateUI(){
             let pSign = stock.nextChange >= 0 ? "+" : ""; let pColor = stock.nextChange >= 0 ? "lime" : "#fca5a5";
             predictHtml = `<p style="font-size:14px; margin:5px 0; color:${pColor}; font-weight:bold;">👁️ 予知: 次回 ${pSign}${stock.nextChange.toLocaleString()}G</p>`;
         }
+        // ここで銘柄の「性格・説明文」を復活させました！
         card.innerHTML=`<h3 style="margin: 0 0 5px 0; font-size:18px; color:${colors[i%colors.length]}">${stock.name}</h3>
+            <p style="font-size:12px; color:#aaa; margin-bottom:10px; min-height:30px;">${stock.desc}</p>
             <p style="font-size:18px; font-weight:bold; margin:5px 0; color:#fff;">現在値: ${stock.price.toLocaleString()}G ${profitDisplay}</p>
             ${predictHtml}
             <p style="margin:5px 0; color:#e9d5ff;">保有: ${stock.owned.toLocaleString()}株</p>`;
@@ -441,315 +441,353 @@ function unlockStock(i){ if(data.points>=data.stocks[i].unlockCost){ data.points
 
 function openScreen(id){ document.getElementById(id).style.display="flex"; }
 function closeScreen(id){ if(id === 'gachaScreen' && isGachaSpinning) return; document.getElementById(id).style.display="none"; }
-function showNotification(text){ 
-    const c = document.getElementById("notificationContainer");
-    const div = document.createElement("div"); div.className = "notification"; div.innerHTML = text;
-    c.appendChild(div); setTimeout(() => { if(div.parentElement) div.remove(); }, 3000);
-}
-
-// --- 【修正箇所】破壊イベント ---
-function openDestroy() {
-    if(isBuffActive("❓ 異質なポーション")) {
-        if(confirm("警告：現在の宇宙を破壊し、異次元へ移行します。\n（異星のミントを獲得し、最初からになります）\n本当によろしいですか？")) {
-            showNotification("💥 宇宙が崩壊しました... 新たな次元へ移行します。");
-            setTimeout(() => {
-                let carryOverMints = (data.alienMints || 0) + 1; // 異星のミント獲得
-                localStorage.removeItem("spaceStockData");
-                
-                // データ初期化
-                data = { nickname:data.nickname, money:30000, points:0, mint:0, alienMints:carryOverMints, mintInventory:{}, potions:{}, activeBuffs:{}, stocks:[], totalBuys:0, gachaCount:0, brewCount:0, alienPotionCount:0, discoveredMints:[], discoveredPotions:[], achievementsUnlocked:[], hiddenGraphItems:[] };
-                for(let i=0;i<10;i++) data.stocks.push({ name: stockTemplates[i].name, price: stockTemplates[i].basePrice, owned: 0, unlocked: i<3, unlockCost: 500+i*300, history: [stockTemplates[i].basePrice], buyPrice: 0, visible: i<3, vol: stockTemplates[i].vol, nextChange: 0 });
-                
-                save();
-                location.reload(); // リロードして再スタート
-            }, 2000);
-        }
-    } else {
-        showNotification("⚠️ まだその時ではない…（『❓ 異質なポーション』の効果中のみ可能です）");
-    }
-}
-
 // --- グラフ描画 ---
-function toggleGraphVisibility(index) {
-    const idx = data.hiddenGraphItems.indexOf(index);
-    if(idx > -1) data.hiddenGraphItems.splice(idx, 1); else data.hiddenGraphItems.push(index);
-    drawAllGraph();
-}
+function drawAllGraph(){
+    const canvas=document.getElementById("allGraph"); if(!canvas) return;
+    const ctx=canvas.getContext("2d"); canvas.width=canvas.clientWidth; canvas.height=canvas.clientHeight;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    
+    // 背景グリッド
+    ctx.strokeStyle="rgba(168,85,247,0.1)"; ctx.lineWidth=1;
+    for(let i=0;i<5;i++){ ctx.beginPath(); ctx.moveTo(0,i*canvas.height/4); ctx.lineTo(canvas.width,i*canvas.height/4); ctx.stroke(); }
+    for(let i=0;i<10;i++){ ctx.beginPath(); ctx.moveTo(i*canvas.width/10,0); ctx.lineTo(i*canvas.width/10,canvas.height); ctx.stroke(); }
 
-function drawAllGraph() {
-    const canvas = document.getElementById("allGraph"); if(!canvas) return;
-    const ctx = canvas.getContext("2d");
-    canvas.width = canvas.parentElement.clientWidth; canvas.height = 300;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const legendDiv = document.getElementById("legend"); legendDiv.innerHTML = "";
-    graphPoints = [];
-
-    let maxPrice = 10, minPrice = Infinity;
-    const visibleStocks = data.stocks.filter((s, i) => {
-        if(!s.unlocked) return false;
-        const btn = document.createElement("div");
-        btn.className = "legend-item" + (data.hiddenGraphItems.includes(i) ? " hidden-stock" : "");
-        btn.innerHTML = `<span style="color:${colors[i%colors.length]}; font-weight:bold;">■</span> ${s.name}`;
-        btn.onclick = () => toggleGraphVisibility(i);
-        legendDiv.appendChild(btn);
-        
-        if(!data.hiddenGraphItems.includes(i)) {
-            s.history.forEach(p => { if(p>maxPrice) maxPrice=p; if(p<minPrice) minPrice=p; });
-            return true;
-        }
-        return false;
+    const maxPoints=30; let globalMax=100; let globalMin=0; graphPoints=[];
+    const visibleStocks = data.stocks.filter((s, idx) => s.visible && !data.hiddenGraphItems.includes(idx));
+    
+    visibleStocks.forEach(stock=>{
+        const max=Math.max(...stock.history); const min=Math.min(...stock.history);
+        if(max>globalMax) globalMax=max; if(min<globalMin) globalMin=min;
     });
+    const range = globalMax - globalMin || 1;
+    const padding = range * 0.1; globalMax += padding; globalMin -= padding;
 
-    if(visibleStocks.length === 0) {
-        ctx.fillStyle = "#888"; ctx.font = "20px Orbitron"; ctx.textAlign = "center";
-        ctx.fillText("NO DATA", canvas.width/2, canvas.height/2); return;
-    }
-
-    const padding = 30; const chartW = canvas.width - padding*2; const chartH = canvas.height - padding*2;
-    const priceRange = maxPrice - minPrice || 1;
-
-    data.stocks.forEach((stock, idx) => {
-        if(!stock.unlocked || data.hiddenGraphItems.includes(idx)) return;
-        ctx.beginPath(); ctx.strokeStyle = colors[idx%colors.length]; ctx.lineWidth = 2;
-        
-        const stepX = chartW / (Math.max(30, stock.history.length) - 1);
-        stock.history.forEach((p, hIdx) => {
-            const x = padding + hIdx * stepX;
-            const y = canvas.height - padding - ((p - minPrice) / priceRange) * chartH;
-            if(hIdx===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-            graphPoints.push({x, y, price:p, name:stock.name, color:colors[idx%colors.length]});
+    visibleStocks.forEach((stock, idx) => {
+        const originalIndex = data.stocks.indexOf(stock);
+        ctx.beginPath(); ctx.strokeStyle=colors[originalIndex%colors.length]; ctx.lineWidth=2;
+        stock.history.forEach((price,j)=>{
+            const x=(j/(maxPoints-1))*canvas.width; const y=canvas.height-((price-globalMin)/(globalMax-globalMin))*canvas.height;
+            if(j===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+            graphPoints.push({x:x, y:y, price:price, name:stock.name, color:colors[originalIndex%colors.length]});
         });
         ctx.stroke();
     });
 
-    if(hoveredPoint){
-        ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.fillRect(hoveredPoint.x-50, hoveredPoint.y-30, 100, 25);
-        ctx.fillStyle = hoveredPoint.color; ctx.font = "12px sans-serif"; ctx.textAlign = "center";
-        ctx.fillText(`${hoveredPoint.name}: ${hoveredPoint.price}G`, hoveredPoint.x, hoveredPoint.y - 12);
-        ctx.beginPath(); ctx.arc(hoveredPoint.x, hoveredPoint.y, 5, 0, Math.PI*2);
-        ctx.fillStyle = hoveredPoint.color; ctx.fill();
+    // 凡例の更新
+    const legendDiv=document.getElementById("legend"); legendDiv.innerHTML="";
+    data.stocks.forEach((stock,i)=>{
+        if(stock.visible){
+            const item=document.createElement("div"); item.className="legend-item" + (data.hiddenGraphItems.includes(i) ? " hidden-stock" : "");
+            item.innerHTML=`<span style="color:${colors[i%colors.length]}">■</span> ${stock.name}`;
+            item.onclick=()=>{
+                if(data.hiddenGraphItems.includes(i)) data.hiddenGraphItems = data.hiddenGraphItems.filter(id => id !== i);
+                else data.hiddenGraphItems.push(i);
+                updateUI();
+            };
+            legendDiv.appendChild(item);
+        }
+    });
+
+    // ホバーツールチップ
+    canvas.onmousemove = (e) => {
+        const rect = canvas.getBoundingClientRect(); const mouseX = e.clientX - rect.left; const mouseY = e.clientY - rect.top;
+        hoveredPoint = graphPoints.find(p => Math.abs(p.x - mouseX) < 10 && Math.abs(p.y - mouseY) < 10);
+        drawAllGraph(); // 再描画してツールチップを表示
+    };
+    if (hoveredPoint) {
+        ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.strokeStyle = hoveredPoint.color; ctx.lineWidth = 1;
+        ctx.fillRect(hoveredPoint.x + 10, hoveredPoint.y - 30, 120, 40); ctx.strokeRect(hoveredPoint.x + 10, hoveredPoint.y - 30, 120, 40);
+        ctx.fillStyle = "white"; ctx.font = "12px Orbitron, sans-serif";
+        ctx.fillText(hoveredPoint.name, hoveredPoint.x + 15, hoveredPoint.y - 15);
+        ctx.fillStyle = hoveredPoint.color; ctx.fillText(hoveredPoint.price.toLocaleString() + "G", hoveredPoint.x + 15, hoveredPoint.y + 2);
     }
 }
 
-document.getElementById("allGraph").addEventListener("mousemove", (e) => {
-    const rect = e.target.getBoundingClientRect(); const x = e.clientX - rect.left, y = e.clientY - rect.top;
-    hoveredPoint = null; let minDist = 20;
-    graphPoints.forEach(pt => {
-        const dist = Math.hypot(pt.x-x, pt.y-y);
-        if(dist < minDist) { minDist = dist; hoveredPoint = pt; }
-    });
-    drawAllGraph();
-});
-document.getElementById("allGraph").addEventListener("mouseout", () => { hoveredPoint = null; drawAllGraph(); });
+// --- ミント・ガチャシステム ---
+const mintTypes = [
+    {name:"ウォーターミント", prob:25}, {name:"ミルクミント", prob:20}, {name:"スパイシーミント", prob:15},
+    {name:"プラネットミント", prob:10}, {name:"ソルティミント", prob:10}, {name:"フロストミント", prob:8},
+    {name:"焼け焦げたミント", prob:5}, {name:"チョコチップミント", prob:4}, {name:"マグマミント", prob:2},
+    {name:"マダムミント", prob:0.5}, {name:"ブラッドミント", prob:0.3}, {name:"ギャラクシーミント", prob:0.1},
+    {name:"ダークマター", prob:0.1} // 新規追加のレア素材
+];
 
-
-// --- 実績表示 ---
-function checkAchievements() {
-    achievements.forEach(a => {
-        if(!data.achievementsUnlocked.includes(a.name) && a.check()) {
-            data.achievementsUnlocked.push(a.name);
-            showNotification(`🏆 実績解除: ${a.name}`);
-        }
-    });
-}
-function openAchievements() {
-    openScreen("achievementScreen");
-    const list = document.getElementById("achievementList"); list.innerHTML = "";
-    achievements.forEach(a => {
-        const unlocked = data.achievementsUnlocked.includes(a.name);
-        const div = document.createElement("div"); div.className = "list-item";
-        div.innerHTML = `<div><strong style="color:${unlocked?'#ffd700':'#666'}; font-size:18px;">${a.name}</strong><br><span style="font-size:13px; color:#aaa;">${a.desc}</span></div><div style="font-size:24px;">${unlocked?'✅':'🔒'}</div>`;
-        list.appendChild(div);
-    });
+function openGacha(){ 
+    document.getElementById("gachaResult").innerHTML = "READY";
+    document.getElementById("gachaBtn").disabled = data.mint < 15;
+    document.getElementById("gacha10Btn").disabled = data.mint < 150;
+    openScreen("gachaScreen"); 
 }
 
-// --- ガチャとミント画面 ---
-function getActiveMintTable() { return [{name:"ベーシックミント",rate:19},{name:"ウォーターミント",rate:4},{name:"チョコチップミント",rate:3},{name:"ブラッドミント",rate:1},{name:"ブルーミント",rate:15},{name:"レッドミント",rate:15},{name:"グリーンミント",rate:15},{name:"パープルミント",rate:6},{name:"ミルクミント",rate:1},{name:"ゴールドミント",rate:4},{name:"ギャラクシーミント",rate:0.5},{name:"プラネットミント",rate:1},{name:"マグマミント",rate:1},{name:"ソルティミント",rate:1},{name:"スパイシーミント",rate:3},{name:"フロストミント",rate:3},{name:"マダムミント",rate:3},{name:"ダークマターミント",rate:0.1},{name:"スイーツミント",rate:1},{name:"ガスミント",rate:1},{name:"アルコールミント",rate:1},{name:"エッグミント",rate:0.5},{name:"焼け焦げたミント",rate:0.4}]; }
-
-function openTutorial() { openScreen("tutorialScreen"); }
-
-function openMint() {
-    openScreen("mintScreen");
-    const list = document.getElementById("mintList"); list.innerHTML = "";
-    const table = getActiveMintTable();
-    const bases = ["🛠️ ポーションのもと", "🛠️ スイーツのもと", "🛠️ お酒のもと", "🛠️ 炭酸のもと"];
-    bases.forEach(b => {
-        let amt = data.mintInventory[b] || 0;
-        if(amt > 0 || data.discoveredMints.includes(b)) {
-            list.innerHTML += `<div class="list-item" style="border-color:#ffd700;"><span>${b}</span><span style="color:#ffd700;">所持: ${amt}</span></div>`;
-        }
-    });
-
-    table.forEach(m => {
-        let amt = data.mintInventory[m.name] || 0;
-        let color = amt > 0 ? "#e9d5ff" : "#666";
-        list.innerHTML += `<div class="list-item" style="color:${color};"><span>${m.name} <br><span style="font-size:12px;color:#aaa;">提供割合: ${m.rate}%</span></span><span>所持: ${amt}</span></div>`;
-    });
-}
-
-function openGacha() { openScreen("gachaScreen"); document.getElementById("gachaResult").innerText = "READY"; }
 function spinGacha(times, isFree = false){
+    if(!isFree && data.mint < 15 * times) return showNotification("破片が足りません！");
     if(isGachaSpinning) return;
-    if(!isFree) { const cost = 15 * times; if(data.mint < cost){ showNotification("⚠️ 破片が足りません！"); return; } data.mint -= cost; updateUI(); }
-    isGachaSpinning = true; data.gachaCount += times;
-    document.getElementById("gachaBtn").disabled = true; document.getElementById("gacha10Btn").disabled = true;
-    const table = getActiveMintTable(); const resBox = document.getElementById("gachaResult"); let cnt = 0;
     
-    const anim=setInterval(()=>{
-        resBox.innerText = "✨ 抽出中... ✨"; cnt++;
-        if(cnt>15){
-            clearInterval(anim); let results = {};
-            for(let i=0; i<times; i++) {
-                let rand=Math.random()*100, total=0, drop="";
-                for(let m of table){ total+=m.rate; if(rand<=total){ drop=m.name; break; } }
-                results[drop] = (results[drop] || 0) + 1;
-                data.mintInventory[drop] = (data.mintInventory[drop]||0) + 1;
-                if(!data.discoveredMints.includes(drop)) data.discoveredMints.push(drop);
+    if(!isFree) data.mint -= 15 * times; 
+    data.gachaCount += times; isGachaSpinning = true;
+    document.getElementById("gachaBtn").disabled = true; document.getElementById("gacha10Btn").disabled = true;
+    
+    let results = [];
+    for(let t=0; t<times; t++){
+        let rand = Math.random() * 100; let sum = 0; let got = mintTypes[0].name;
+        for(let m of mintTypes){ sum += m.prob; if(rand <= sum){ got = m.name; break; } }
+        results.push(got);
+        data.mintInventory[got] = (data.mintInventory[got] || 0) + 1;
+        if(!data.discoveredMints.includes(got)) data.discoveredMints.push(got);
+    }
+
+    const resDiv = document.getElementById("gachaResult");
+    let frame = 0;
+    let anim = setInterval(()=>{
+        frame++; resDiv.innerText = mintTypes[Math.floor(Math.random()*mintTypes.length)].name + " 抽出中...";
+        if(frame > 10){
+            clearInterval(anim); isGachaSpinning = false;
+            if(times === 1) {
+                let color = ["ブラッドミント", "ギャラクシーミント", "ダークマター"].includes(results[0]) ? "#ef4444" : "#a855f7";
+                resDiv.innerHTML = `<span style="color:${color}; animation:unlockGlow 1s infinite alternate;">${results[0]}</span>`;
+            } else {
+                resDiv.innerHTML = `<div style="font-size:16px; display:flex; flex-wrap:wrap; gap:5px; justify-content:center;">` + results.map(r => {
+                    let c = ["ブラッドミント", "ギャラクシーミント", "ダークマター"].includes(r) ? "#ef4444" : "#e9d5ff";
+                    return `<span style="border:1px solid #a855f7; padding:2px 5px; border-radius:4px; color:${c}">${r}</span>`;
+                }).join("") + `</div>`;
             }
-            resBox.innerHTML = Object.entries(results).map(([k,v]) => `${k} x${v}`).join("<br>");
-            isGachaSpinning = false; document.getElementById("gachaBtn").disabled = false; document.getElementById("gacha10Btn").disabled = false; save();
+            updateUI(); save();
+            document.getElementById("gachaBtn").disabled = data.mint < 15;
+            document.getElementById("gacha10Btn").disabled = data.mint < 150;
         }
-    },80);
+    }, 50);
 }
 
-// --- クラフトと醸造 ---
+// --- 素材合成 (ベース作成) ---
+const craftRecipes = [
+    { result: "🛠️ ポーションのもと", m1: "ウォーターミント", m2: "ウォーターミント" },
+    { result: "🛠️ スイーツのもと", m1: "ミルクミント", m2: "ミルクミント" },
+    { result: "🛠️ 炭酸のもと", m1: "スパイシーミント", m2: "ウォーターミント" },
+    { result: "🛠️ お酒のもと", m1: "フロストミント", m2: "ウォーターミント" },
+    { result: "🛠️ ダークマターのもと", m1: "ダークマター", m2: "🛠️ ポーションのもと" } // 追加レシピ
+];
+
 function openCraft() {
-    openScreen("craftScreen");
-    const m1 = document.getElementById("craftMat1"), m2 = document.getElementById("craftMat2");
-    m1.innerHTML = ""; m2.innerHTML = "";
-    let opts = "";
-    for(let m in data.mintInventory){ if(data.mintInventory[m] > 0 && !m.includes("🛠️")) opts += `<option value="${m}">${m} (所持:${data.mintInventory[m]})</option>`; }
-    if(data.mintInventory["🛠️ ポーションのもと"] > 0) opts = `<option value="🛠️ ポーションのもと">🛠️ ポーションのもと (所持:${data.mintInventory["🛠️ ポーションのもと"]})</option>` + opts;
+    const s1 = document.getElementById("craftMat1"); const s2 = document.getElementById("craftMat2");
+    s1.innerHTML = ""; s2.innerHTML = "";
     
-    if(!opts) opts = `<option value="">素材がありません</option>`;
-    m1.innerHTML = opts; m2.innerHTML = opts;
+    // 手持ちのミント・素材をすべてプルダウンに追加
+    Object.keys(data.mintInventory).forEach(m => {
+        if(data.mintInventory[m] > 0) {
+            s1.innerHTML += `<option value="${m}">${m} (所持: ${data.mintInventory[m]})</option>`;
+            s2.innerHTML += `<option value="${m}">${m} (所持: ${data.mintInventory[m]})</option>`;
+        }
+    });
+
+    // レシピヒントの更新
+    let hintHTML = `
+        <p style="margin-top:0; margin-bottom:5px; color:#c084fc; font-weight:bold;">【基本レシピ】</p>
+        <ul style="margin:0; padding-left:20px; color:#e9d5ff;">
+            <li>💧ウォーター + 💧ウォーター = 🛠️ ポーションのもと</li>
+            <li>🥛ミルク + 🥛ミルク = 🛠️ スイーツのもと</li>
+            <li>🌶️スパイシー + 💧ウォーター = 🛠️ 炭酸のもと</li>
+            <li>❄️フロスト + 💧ウォーター = 🛠️ お酒のもと</li>
+    `;
+    // 異質なポーション解放済みの時のみ、不気味なヒントを追加
+    if (data.discoveredPotions.includes("❓ 異質なポーション")) {
+        hintHTML += `<li style="color:#ef4444; font-weight:bold; margin-top:5px; text-shadow:0 0 5px red; list-style-type:none;">🌑 ダークマター + 🛠️ ポーションのもと = 🛠️ ダークマターのもと</li>`;
+    }
+    hintHTML += `</ul>`;
+    document.getElementById("craftRecipeHint").innerHTML = hintHTML;
+
+    openScreen("craftScreen");
 }
 
 function doCraft() {
-    let m1 = document.getElementById("craftMat1").value, m2 = document.getElementById("craftMat2").value;
-    if(!m1 || !m2) return showNotification("素材を選んでください");
+    let m1 = document.getElementById("craftMat1").value;
+    let m2 = document.getElementById("craftMat2").value;
+    if(!m1 || !m2) return showNotification("素材が選択されていません。");
 
-    let req = {}; req[m1] = (req[m1]||0)+1; req[m2] = (req[m2]||0)+1;
-    for(let k in req){ if((data.mintInventory[k]||0) < req[k]) return showNotification(`⚠️ ${k} が足りません`); }
-    for(let k in req) data.mintInventory[k] -= req[k];
+    let count1 = data.mintInventory[m1] || 0;
+    let count2 = data.mintInventory[m2] || 0;
+    if(m1 === m2 && count1 < 2) return showNotification(`「${m1}」が2つ必要です。`);
+    if(m1 !== m2 && (count1 < 1 || count2 < 1)) return showNotification("素材が足りません。");
 
-    let result = "";
-    const isPair = (a, b) => (m1===a && m2===b) || (m1===b && m2===a);
+    let recipe = craftRecipes.find(r => (r.m1 === m1 && r.m2 === m2) || (r.m1 === m2 && r.m2 === m1));
 
-    if(isPair("ベーシックミント", "ベーシックミント")) result = "🛠️ ポーションのもと";
-    else if(isPair("🛠️ ポーションのもと", "スイーツミント")) result = "🛠️ スイーツのもと";
-    else if(isPair("🛠️ ポーションのもと", "アルコールミント")) result = "🛠️ お酒のもと";
-    else if(isPair("🛠️ ポーションのもと", "ガスミント")) result = "🛠️ 炭酸のもと";
+    data.mintInventory[m1]--;
+    data.mintInventory[m2]--;
 
-    if(result) {
-        data.mintInventory[result] = (data.mintInventory[result]||0) + 1;
-        if(!data.discoveredMints.includes(result)) data.discoveredMints.push(result);
-        showNotification(`🎉 成功！ ${result} を作成しました`);
+    if(recipe) {
+        data.mintInventory[recipe.result] = (data.mintInventory[recipe.result] || 0) + 1;
+        if(!data.discoveredMints.includes(recipe.result)) data.discoveredMints.push(recipe.result);
+        showNotification(`✨ 合成成功！「${recipe.result}」を作成しました！`);
     } else {
-        for(let k in req) data.mintInventory[k] += req[k];
-        showNotification("💥 失敗！その組み合わせでは何もできないようだ… (素材は返却されました)");
+        showNotification("💥 合成失敗... 謎のチリになって消えてしまった。");
     }
-    save(); openCraft();
+    openCraft(); save();
 }
 
-const bases = ["🛠️ ポーションのもと", "🛠️ スイーツのもと", "🛠️ お酒のもと", "🛠️ 炭酸のもと"];
-
-function openBrew() {
-    openScreen("brewScreen");
-    const bSel = document.getElementById("brewBase"), m1 = document.getElementById("brewMat1"), m2 = document.getElementById("brewMat2");
-    bSel.innerHTML = ""; m1.innerHTML = ""; m2.innerHTML = "";
+// --- 醸造 ---
+function openBrew(){
+    const bBase = document.getElementById("brewBase"); const bMat1 = document.getElementById("brewMat1"); const bMat2 = document.getElementById("brewMat2");
+    bBase.innerHTML = ""; bMat1.innerHTML = ""; bMat2.innerHTML = "";
     
-    let baseOpts = "", mintOpts = "";
-    for(let m in data.mintInventory) {
-        if(data.mintInventory[m] > 0) {
-            let opt = `<option value="${m}">${m} (所持:${data.mintInventory[m]})</option>`;
-            if(bases.includes(m)) baseOpts += opt; else mintOpts += opt;
+    Object.keys(data.mintInventory).forEach(m => {
+        if(data.mintInventory[m] > 0){
+            let opt = `<option value="${m}">${m} (所持: ${data.mintInventory[m]})</option>`;
+            if(m.includes("のもと")) bBase.innerHTML += opt;
+            else { bMat1.innerHTML += opt; bMat2.innerHTML += opt; }
+        }
+    });
+    openScreen("brewScreen");
+}
+
+function doBrew(){
+    const base = document.getElementById("brewBase").value; const m1 = document.getElementById("brewMat1").value; const m2 = document.getElementById("brewMat2").value;
+    if(!base || !m1 || !m2) return showNotification("素材が足りません。");
+    
+    let count1 = data.mintInventory[m1] || 0; let count2 = data.mintInventory[m2] || 0;
+    if(m1 === m2 && count1 < 2) return showNotification(`「${m1}」が2つ必要です。`);
+    
+    let resultPotion = "🧪 失敗作ポーション (ゴミ)";
+    for(let r of treeRecipes){
+        if(r.base === base){
+            if((r.m1 === m1 && r.m2 === m2) || (r.m1 === m2 && r.m2 === m1) || (r.m1 === m1 && r.m2 === "任意") || (r.m1 === m2 && r.m2 === "任意")){
+                resultPotion = r.result; break;
+            }
         }
     }
-    bSel.innerHTML = baseOpts || `<option value="">ベース素材がありません</option>`;
-    m1.innerHTML = mintOpts || `<option value="">追加ミントがありません</option>`;
-    m2.innerHTML = mintOpts || `<option value="">追加ミントがありません</option>`;
+    
+    data.mintInventory[base]--; data.mintInventory[m1]--; data.mintInventory[m2]--; data.brewCount++;
+    data.potions[resultPotion] = (data.potions[resultPotion] || 0) + 1;
+    if(!data.discoveredPotions.includes(resultPotion) && resultPotion !== "🧪 失敗作ポーション (ゴミ)") data.discoveredPotions.push(resultPotion);
+    if(resultPotion === "❓ 異質なポーション") data.alienPotionCount++;
+    
+    showNotification(`⚗️ 醸造完了！「${resultPotion}」が完成しました！`);
+    openBrew(); updateUI(); save();
 }
 
-function doBrew() {
-    const base = document.getElementById("brewBase").value, m1 = document.getElementById("brewMat1").value, m2 = document.getElementById("brewMat2").value;
-    if(!base || !m1 || !m2) return showNotification("ベースと追加ミント2つを選択してください");
-
-    let req = {}; req[base] = 1; req[m1] = (req[m1]||0)+1; req[m2] = (req[m2]||0)+1;
-    for(let k in req){ if((data.mintInventory[k]||0) < req[k]) return showNotification(`⚠️ ${k} が足りません`); }
-    for(let k in req) data.mintInventory[k] -= req[k];
-
-    let result = "";
-    const isMatch = (req1, req2) => {
-        if(req2 === "任意") return m1 === req1 || m2 === req1;
-        return (m1 === req1 && m2 === req2) || (m1 === req2 && m2 === req1);
-    };
-
-    for(let r of treeRecipes) { if(base === r.base && isMatch(r.m1, r.m2)) { result = r.result; break; } }
-
-    if(!result && base === "🛠️ ポーションのもと") {
-        let pool = ["💰 黄金の雫", "⭐ 知識の霊薬", "📈 ハイパードライブ薬", "🛡 プロテクトジェル", "💎 ミントブースト", "⏳ タイムワープ薬"];
-        result = pool[Math.floor(Math.random() * pool.length)];
-    }
-
-    if(result) {
-        data.brewCount++;
-        if(result === "❓ 異質なポーション") data.alienPotionCount++;
-        data.potions[result] = (data.potions[result]||0) + 1;
-        if(!data.discoveredPotions.includes(result)) data.discoveredPotions.push(result);
-        showNotification(`🧪 ${result} を醸造しました！`);
-    } else {
-        for(let k in req) data.mintInventory[k] += req[k];
-        showNotification("💥 失敗！レシピ通りに調合しないと失敗してしまうようだ…");
-    }
-    save(); openBrew();
-}
-
-function openRecipeTree() {
-    closeScreen('brewScreen'); openScreen('recipeTreeScreen');
+// --- ツリー・インベントリ関連 ---
+function openRecipeTree(){
+    closeScreen("brewScreen"); openScreen("recipeTreeScreen");
     const container = document.getElementById("recipeTreeContainer"); container.innerHTML = "";
-    const isAllUnlocked = data.stocks.every(s => s.unlocked);
-
-    bases.forEach(baseName => {
-        const baseDiv = document.createElement("div"); baseDiv.className = "tree-base"; baseDiv.innerText = baseName;
-        const ul = document.createElement("ul"); ul.className = "tree-ul";
+    
+    const bases = [...new Set(treeRecipes.map(r => r.base))];
+    bases.forEach(base => {
+        let baseDiv = document.createElement("div"); baseDiv.className = "tree-base"; baseDiv.innerText = base; container.appendChild(baseDiv);
+        let ul = document.createElement("ul"); ul.className = "tree-ul";
         
-        treeRecipes.filter(r => r.base === baseName).forEach(r => {
-            const li = document.createElement("li"); li.className = "tree-li";
-            let isAlien = r.result === "❓ 異質なポーション";
-            let isRevealed = data.discoveredPotions.includes(r.result) || (isAlien && isAllUnlocked);
-
-            if(isRevealed) { li.innerHTML = `<span class="tree-recipe">${r.result}</span> <br><span style="color:#a855f7; font-size:12px;">└ ${r.m1} ＋ ${r.m2}</span>`; } 
-            else { li.innerHTML = `<span class="tree-unknown">❓ ？？？？？？</span> <br><span style="color:#666; font-size:12px;">└ ${r.m1} ＋ ${r.m2 === "任意" ? "任意" : "？？？"}</span>`; }
+        treeRecipes.filter(r => r.base === base).forEach(r => {
+            let li = document.createElement("li"); li.className = "tree-li";
+            if(data.discoveredPotions.includes(r.result)){
+                li.innerHTML = `<span class="tree-recipe">${r.result}</span> <span style="font-size:12px;color:#aaa;">(${r.m1} + ${r.m2})</span>`;
+            } else {
+                li.innerHTML = `<span class="tree-unknown">？？？</span> <span style="font-size:12px;color:#aaa;">(${r.m1} + ${r.m2})</span>`;
+            }
             ul.appendChild(li);
         });
-        container.appendChild(baseDiv); container.appendChild(ul);
+        container.appendChild(ul);
     });
 }
 
-function openBag() {
-    openScreen("bagScreen"); const list = document.getElementById("bagList"); list.innerHTML = "";
-    for(let p in data.potions){
-        if(data.potions[p] > 0){
-            const div = document.createElement("div"); div.className = "list-item";
-            div.innerHTML = `<div><div style="font-weight:bold; font-size:18px;">${p} x${data.potions[p]}</div><div style="font-size:12px; color:#e9d5ff;">${potionEffects[p].desc}</div></div><button class="menu-btn" onclick="usePotion('${p}')">使う</button>`;
-            list.appendChild(div);
-        }
+function openMint(){
+    const list = document.getElementById("mintList"); list.innerHTML = "";
+    let html = `<div style="margin-bottom:20px; border-bottom:1px solid #a855f7; padding-bottom:10px;">`;
+    mintTypes.forEach(m => { html += `<div style="display:flex; justify-content:space-between; font-size:14px;"><span>${m.name}</span> <span style="color:#aaa;">${m.prob}%</span></div>`; });
+    html += `</div>`;
+    
+    const inventory = Object.keys(data.mintInventory).filter(k => data.mintInventory[k] > 0);
+    if(inventory.length === 0) html += "<p style='text-align:center; color:#888;'>所持アイテムはありません。</p>";
+    inventory.forEach(m => { html += `<div class="list-item"><span>${m}</span> <span style="color:#c084fc; font-weight:bold;">x${data.mintInventory[m]}</span></div>`; });
+    
+    list.innerHTML = html; openScreen("mintScreen");
+}
+
+function openBag(){
+    const list = document.getElementById("bagList"); list.innerHTML = "";
+    const pKeys = Object.keys(data.potions).filter(k => data.potions[k] > 0);
+    if(pKeys.length === 0) list.innerHTML = "<p style='text-align:center; color:#888;'>ポーションを持っていません。</p>";
+    
+    pKeys.forEach(p => {
+        const item = document.createElement("div"); item.className = "list-item";
+        let effDesc = potionEffects[p] ? potionEffects[p].desc : "何が起こるか分からない...";
+        item.innerHTML = `<div style="flex:1;">
+                <div style="font-size:18px; font-weight:bold; color:#e9d5ff;">${p} <span style="color:#c084fc;">x${data.potions[p]}</span></div>
+                <div style="font-size:12px; color:#aaa; margin-top:5px;">${effDesc}</div>
+            </div>`;
+        const useBtn = document.createElement("button"); useBtn.innerText = "使う"; useBtn.className = "menu-btn";
+        useBtn.onclick = () => usePotion(p);
+        item.appendChild(useBtn); list.appendChild(item);
+    });
+    openScreen("bagScreen");
+}
+
+function usePotion(p){
+    if(data.potions[p] <= 0) return;
+    data.potions[p]--;
+    const effect = potionEffects[p];
+    if(effect){
+        let mult = isBuffActive("🍦 チョコミントポーション") ? 2 : 1;
+        if(p === "🍦 チョコミントポーション") mult = 1;
+        if(effect.type === "instant") { effect.action(mult); }
+        else if(effect.type === "buff") { data.activeBuffs[p] = Date.now() + (effect.duration * mult); }
+        showNotification(`🧪 「${p}」を使用した！`);
+    } else { showNotification(`🧪 「${p}」を飲んだが、特に何も起きなかった...`); }
+    updateUI(); save(); openBag();
+}
+
+// --- 破壊システム ---
+function openDestroy(){
+    if(!isBuffActive("❓ 異質なポーション")) return showNotification("今はまだ、その時ではないようだ...");
+    if(confirm("⚠️ 警告 ⚠️\n本当にこの次元の市場を『破壊』しますか？\n（※所持金、株、ポイントがリセットされ、強力な「異星のミント」を得ます）")){
+        doDestroy();
     }
 }
 
-function usePotion(pName){
-    if(!data.potions[pName] || data.potions[pName] <= 0) return;
-    const effect = potionEffects[pName]; data.potions[pName]--;
-    let isChocoActive = isBuffActive("🍦 チョコミントポーション") && pName !== "🍦 チョコミントポーション";
-    let m = isChocoActive ? 2 : 1;
-    if(effect.type === "instant"){ effect.action(m); showNotification(`✨ ${pName} を使用しました！`); } 
-    else if (effect.type === "buff"){ data.activeBuffs[pName] = Date.now() + (effect.duration * m); showNotification(`✨ ${pName} の効果発動！`); }
-    updateUI(); openBag();
+function doDestroy(){
+    data.alienMints = (data.alienMints || 0) + 1;
+    data.money = 30000; data.points = 0;
+    data.stocks.forEach((s, idx) => {
+        s.owned = 0; s.buyPrice = 0; s.unlocked = idx < 3; s.visible = idx < 3; 
+        s.price = s.basePrice; s.history = [s.price];
+    });
+    delete data.activeBuffs["❓ 異質なポーション"];
+    showNotification("💥 世界は崩壊し、新たな次元へと再構築されました...『異星のミント』を獲得！");
+    updateUI(); save();
 }
 
-window.addEventListener("load", () => { if(data && data.nickname) startGame(); });
+// --- 実績・通知・チュートリアル ---
+function openAchievements(){
+    const list = document.getElementById("achievementList"); list.innerHTML = "";
+    achievements.forEach(a => {
+        const isUnlocked = data.achievementsUnlocked.includes(a.name);
+        const item = document.createElement("div"); 
+        item.className = "list-item" + (isUnlocked ? "" : " locked");
+        item.innerHTML = `<div><div style="font-weight:bold; color:${isUnlocked ? '#ffd700' : '#888'};">${a.name}</div><div style="font-size:12px; color:#aaa;">${a.desc}</div></div>
+                          <div style="font-size:24px;">${isUnlocked ? '🌟' : '🔒'}</div>`;
+        list.appendChild(item);
+    });
+    openScreen("achievementScreen");
+}
+
+function checkAchievements(){
+    achievements.forEach(a => {
+        if(!data.achievementsUnlocked.includes(a.name) && a.check()){
+            data.achievementsUnlocked.push(a.name);
+            showNotification(`🏆 実績解除: ${a.name} (${a.desc})`);
+            data.money += 10000; data.points += 500; data.mint += 50;
+            showNotification(`🎁 ボーナス獲得: 10,000G / 500P / 50破片`);
+        }
+    });
+}
+
+function showNotification(msg){
+    const container = document.getElementById("notificationContainer");
+    const notif = document.createElement("div"); notif.className = "notification"; notif.innerText = msg;
+    container.appendChild(notif);
+    setTimeout(() => { if(notif.parentNode) notif.parentNode.removeChild(notif); }, 3000);
+}
+
+function openTutorial(){ openScreen("tutorialScreen"); }
+
+// 起動処理
+window.onload = () => { if(data.nickname) startGame(); };
 </script>
 </body>
 </html>
