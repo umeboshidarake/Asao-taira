@@ -893,9 +893,9 @@ function sellStock(idx, amount) {
         alienBonus *= 100; 
     }
     
-    // ▼ ここを置き換え！
-    let passives = getSinPassives();
-    if (profit > 0) profit = Math.floor(profit * (1 + alienBonus) * passives.moneyMult); // 暴食なら5倍、強欲なら0.6倍
+    // ▼ 大罪（強欲・暴食）のパッシブ適用
+    let passives = typeof getSinPassives === "function" ? getSinPassives() : {moneyMult: 1, mintMult: 1};
+    if (profit > 0) profit = Math.floor(profit * (1 + alienBonus) * passives.moneyMult); 
     
     data.money += (stock.buyPrice * qty) + profit;
     stock.owned -= qty;
@@ -906,11 +906,9 @@ function sellStock(idx, amount) {
         if(isBuffActive("🌍 星の恵み")) mintGained *= 3;
         else if(isBuffActive("💎 ミントブースト")) mintGained *= 2;
         
-        // 破片にも異星パッシブを適用
-        mintGained = Math.floor(mintGained * (1 + alienBonus));
+        // ▼ 破片にも異星パッシブと大罪（強欲）パッシブを適用
+        mintGained = Math.floor(mintGained * (1 + alienBonus) * passives.mintMult); 
         
-        // ▼ ここを置き換え！
-        mintGained = Math.floor(mintGained * (1 + alienBonus) * passives.mintMult); // 強欲なら0.6倍
         data.mint += mintGained;
         showNotification(`📈 利益確定！ ${profit.toLocaleString()}Gの利益！ (破片+${mintGained})`);
     }
@@ -918,7 +916,6 @@ function sellStock(idx, amount) {
     updateUI();
     save();
 }
-
 function unlockStock(idx) {
     if (data.points >= data.stocks[idx].unlockCost) {
         data.points -= data.stocks[idx].unlockCost;
@@ -1218,7 +1215,11 @@ function openBrew(){
     openScreen("brewScreen");
 }
 function doBrew(){
-    if (!getSinPassives().canBrew) return showNotification("💋 色欲の呪いにより、醸造することができない！");
+    // ▼ 大罪の呪いストッパー
+    if (typeof getSinPassives === "function" && !getSinPassives().canBrew) {
+        return showNotification("💋 色欲の呪いにより、醸造することができない！");
+    }
+
     const base = document.getElementById("brewBase").value; const m1 = document.getElementById("brewMat1").value; const m2 = document.getElementById("brewMat2").value;
     if(!base || !m1 || !m2) return showNotification("素材が足りません。");
     
