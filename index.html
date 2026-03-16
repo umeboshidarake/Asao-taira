@@ -146,6 +146,7 @@ select { background: black; color: white; border: 1px solid #a855f7; padding: 10
     <button class="menu-btn" onclick="openBag()">🎒 バッグ</button>
     <button class="menu-btn" onclick="openShop()">🛒 ショップ</button>
     <button class="menu-btn destroy-btn" onclick="openDestroy()">🛸 侵略</button>
+　　<button id="sinMenuBtn" class="menu-btn" onclick="openSinScreen()" style="display: none; background: #7f1d1d; color: #fca5a5; border-color: #ef4444;">👿 悪魔の契約</button>
 </div>
 
 <div class="status-bar">
@@ -163,6 +164,13 @@ select { background: black; color: white; border: 1px solid #a855f7; padding: 10
 </div>
 
 <div id="notificationContainer"></div>
+<div id="sinScreen" class="modal-screen">
+    <div class="modal-content">
+        <h2 style="text-align:center; color:#fca5a5; text-shadow:0 0 10px red;">👿 悪魔の契約 (大罪装備)</h2>
+        <div id="sinList" style="max-height: 400px; overflow-y: auto;"></div>
+        <button class="modal-close menu-btn" onclick="closeScreen('sinScreen')">閉じる</button>
+    </div>
+</div>
 
 <div id="tutorialScreen" class="modal-screen">
     <div class="modal-content">
@@ -264,6 +272,7 @@ select { background: black; color: white; border: 1px solid #a855f7; padding: 10
 
 <script>
 // --- 基本データと初期化 ---
+// --- 基本データと初期化 ---
 const stockTemplates = [
     { name: "アストロ通信", basePrice: 300, vol: 0.02, desc: "安定感抜群だが成長は遅い。おしゃべり好き。" },
     { name: "スターダスト鉱業", basePrice: 500, vol: 0.05, desc: "資源価格に左右される。無骨で真面目。" },
@@ -274,39 +283,51 @@ const stockTemplates = [
     { name: "AIコア", basePrice: 3500, vol: 0.03, desc: "冷徹なAIによる運用。感情を持たない安定株。" },
     { name: "クアンタム", basePrice: 2500, vol: 0.06, desc: "量子技術の最先端。予測不能な変人。" },
     { name: "ツーリズム", basePrice: 600, vol: 0.10, desc: "宇宙旅行ブームに乗る。明るく楽観的。" },
-    { name: "オメガHD", basePrice: 10000, vol: 0.05, desc: "宇宙を牛耳る巨大企業。傲慢だが実力は本物。" }
+    { name: "オメガHD", basePrice: 10000, vol: 0.05, desc: "宇宙を牛耳る巨大企業。傲慢だが実力は本物。" },
+    // ▼ 傲慢のミント専用裏銘柄
+    { name: "傲慢な悪魔の秘密な会社", basePrice: 100000, vol: 0.50, desc: "大罪『傲慢』による裏銘柄。購入すると他が下落する。" }
 ];
-const colors = ["#ef4444","#3b82f6","#10b981","#f59e0b","#8b5cf6","#ec4899","#06b6d4","#eab308","#a855f7","#6366f1"];
+const colors = ["#ef4444","#3b82f6","#10b981","#f59e0b","#8b5cf6","#ec4899","#06b6d4","#eab308","#a855f7","#6366f1", "#991b1b"];
 
-let loadedData = JSON.parse(localStorage.getItem("spaceStockData"));
+let defaultData = { nickname:"", money:30000, points:0, mint:0, alienMints:0, mintInventory:{}, potions:{}, activeBuffs:{}, stocks:[], totalBuys:0, gachaCount:0, brewCount:0, alienPotionCount:0, alienPotionUsed:false, discoveredMints:[], discoveredPotions:[], achievementsUnlocked:[], hiddenGraphItems:[], tempestCurse:false, nextTempestStrike:0, midasCurse:false, invasionCount:0, equippedSins:[] };
+
+let loadedData = localStorage.getItem("spaceStockData");
 let data = {};
 
-if(!loadedData) {
-    data = { nickname:"", money:30000, points:0, mint:0, alienMints:0, mintInventory:{}, potions:{}, activeBuffs:{}, stocks:[], totalBuys:0, gachaCount:0, brewCount:0, alienPotionCount:0, alienPotionUsed:false, discoveredMints:[], discoveredPotions:[], achievementsUnlocked:[], hiddenGraphItems:[], tempestCurse:false, nextTempestStrike:0 };
-    for(let i=0;i<10;i++) data.stocks.push({ name: stockTemplates[i].name, desc: stockTemplates[i].desc, price: stockTemplates[i].basePrice, owned: 0, unlocked: i<3, unlockCost: 500+i*300, history: [stockTemplates[i].basePrice], buyPrice: 0, visible: i<3, vol: stockTemplates[i].vol, nextChange: 0 });
-} else {
-    data = loadedData;
-    if(!data.mintInventory) data.mintInventory = {};
-    if(!data.potions) data.potions = {};
-    if(!data.activeBuffs) data.activeBuffs = {};
-    if(!data.achievementsUnlocked) data.achievementsUnlocked = [];
-    if(!data.discoveredMints) data.discoveredMints = [];
-    if(!data.discoveredPotions) data.discoveredPotions = [];
-    if(!data.hiddenGraphItems) data.hiddenGraphItems = [];
-    if(data.alienMints === undefined) data.alienMints = 0;
-    if(data.alienPotionCount === undefined) data.alienPotionCount = 0;
-    if(data.alienPotionUsed === undefined) data.alienPotionUsed = false;
-    if(data.tempestCurse === undefined) data.tempestCurse = false;
-    if(data.nextTempestStrike === undefined) data.nextTempestStrike = 0;
-    if(data.stocks) {
+if(loadedData) {
+    try {
+        let parsed = JSON.parse(loadedData);
+        data = Object.assign({}, defaultData, parsed);
+        data.mintInventory = Object.assign({}, defaultData.mintInventory, parsed.mintInventory);
+        data.potions = Object.assign({}, defaultData.potions, parsed.potions);
+        data.activeBuffs = Object.assign({}, defaultData.activeBuffs, parsed.activeBuffs);
+        
+        // 株データの修復と補完
         data.stocks.forEach((s, idx) => {
             if(!s.history) s.history = [s.price];
             if(s.visible === undefined) s.visible = s.unlocked;
             if(!s.desc) s.desc = stockTemplates[idx].desc;
         });
+        
+        // 傲慢株がデータになければ追加
+        if(data.stocks.length === 10) {
+            let prideStock = stockTemplates[10];
+            data.stocks.push({ name: prideStock.name, desc: prideStock.desc, price: prideStock.basePrice, owned: 0, unlocked: false, unlockCost: 999999, history: [prideStock.basePrice], buyPrice: 0, visible: false, vol: prideStock.vol, nextChange: 0 });
+        }
+    } catch(e) {
+        console.error("セーブデータが破損しています", e);
+        data = Object.assign({}, defaultData);
     }
+} else {
+    data = Object.assign({}, defaultData);
 }
 
+// 初期株セットアップ（新規開始時のみ）
+if (data.stocks.length === 0) {
+    for(let i=0;i<11;i++) {
+        data.stocks.push({ name: stockTemplates[i].name, desc: stockTemplates[i].desc, price: stockTemplates[i].basePrice, owned: 0, unlocked: i<3, unlockCost: 500+i*300, history: [stockTemplates[i].basePrice], buyPrice: 0, visible: i<3, vol: stockTemplates[i].vol, nextChange: 0 });
+    }
+}
 let timerInterval = null, priceCheckTimeout = null, isGachaSpinning = false;
 let graphPoints = [], hoveredPoint = null;
 
@@ -587,110 +608,110 @@ function updateTimer() {
 // ▼ 変動率を計算する専用関数（予知に使うため分離）
 // ▼ 変動率を計算する専用関数（性格システム追加版）
 // ▼ 変動率を計算する関数
+// ▼ 変動率を計算する関数
 function calculateChangePercent(stock, idx) {
     let vol = stock.vol;
-    // ▼ ハイパードライブ弱体化（2倍 → 1.5倍）
+    let passives = getSinPassives();
+
     if(isBuffActive("📈 ハイパードライブ薬")) vol *= 1.3;
     if(isBuffActive("🍨 アイスクリームポーション")) vol *= 0.3;
 
-    // 銘柄ごとに性格を割り当て
-    const pList = ["🛡️ 堅実", "🐎 暴れ馬", "💞 ツンデレ", "🔥 不屈", "💧 臆病"];
-    stock.personality = stock.personality || pList[idx % pList.length];
-
+    stock.personality = stock.personality || ["🛡️ 堅実", "🐎 暴れ馬", "💞 ツンデレ", "🔥 不屈", "💧 臆病"][idx % 5] || "未知";
     let changePercent = (Math.random() * vol * 2) - vol; 
 
-    // ▼ 性格による特別な値動き
-    if (stock.personality === "🛡️ 堅実") {
-        vol *= 0.5; 
-        changePercent = (Math.random() * vol * 2) - vol + 0.005; 
-    } 
-    else if (stock.personality === "🐎 暴れ馬") {
-        if (Math.random() < 0.1) changePercent *= 3; 
-    } 
-    else if (stock.personality === "💞 ツンデレ") {
-        if (stock.lastChange > 0) changePercent += vol * 0.4;
-        else if (stock.lastChange < 0) changePercent -= vol * 0.4;
-    } 
-    else if (stock.personality === "🔥 不屈") {
-        if (stock.price < stock.basePrice) changePercent += vol * 0.5;
-    } 
-    else if (stock.personality === "💧 臆病") {
-        if (stock.price > stock.basePrice * 2 && Math.random() < 0.3) changePercent = -vol * 1.5;
-    }
-
-    let isTempest = isBuffActive("🌪️ テンペスト");
-    let isTempestStrike = (!isTempest && data.tempestCurse && Date.now() >= data.nextTempestStrike);
+    let isTempest = isBuffActive("🌪️ テンペスト") || (!isBuffActive("🌪️ テンペスト") && data.tempestCurse && Date.now() >= data.nextTempestStrike);
     
-    if (isTempest || isTempestStrike) {
+    if (isTempest) {
         let extremeVol = vol * (10 + Math.random() * 10);
         changePercent = (Math.random() * extremeVol * 2) - extremeVol;
         if (Math.random() < 0.2) changePercent *= 2; 
     } else {
         if(data.midasCurse) changePercent += 0.02; 
-        if(isBuffActive("🍷 ワイン")) {
-            vol *= 2.5; 
-            changePercent = (Math.random() * vol * 2) - vol; 
-        }
-        // ▼ ギャラクシーブル弱体化（1.5倍 → 1.2倍）
-        if(isBuffActive("🚀 ギャラクシーブル")) {
-            changePercent = (Math.random() * vol * 2.0) - (vol * 0.5);
-        }
+        if(isBuffActive("🍷 ワイン")) { vol *= 2.5; changePercent = (Math.random() * vol * 2) - vol; }
+        if(isBuffActive("🚀 ギャラクシーブル")) changePercent = (Math.random() * vol * 2.0) - (vol * 0.5);
         if(isBuffActive("🌋 ヴォルカニック・ブル")) changePercent = (Math.random() * vol * 2.5); 
         
-        // 📈 【追加】100G以下の救済措置（70%の確率でプラス変動にする）
-        if (stock.price <= 100) {
-            if (Math.random() < 0.7) {
-                changePercent = Math.abs(changePercent); // マイナスだった場合も強制的にプラスにする
-            }
+        // 📈 100G以下の救済措置 ＆ 👿 大罪の確率補正
+        let riseChance = 0.5; 
+        if (stock.price <= 100) riseChance += 0.2; 
+        riseChance += passives.stockRiseChance; 
+
+        // 🟣 傲慢の呪い判定
+        let prideStock = data.stocks.find(s => s.name === "傲慢な悪魔の秘密な会社");
+        if (passives.hasPrideStock && prideStock && prideStock.owned > 0 && stock.name !== "傲慢な悪魔の秘密な会社") {
+            riseChance -= 0.3; // 他の株が下がりやすくなる
         }
+
+        if (Math.random() < riseChance) changePercent = Math.abs(changePercent); 
+        else changePercent = -Math.abs(changePercent); 
 
         if(changePercent < 0 && isBuffActive("🛡 プロテクトジェル")) changePercent *= 0.5;
         if(changePercent < 0 && isBuffActive("🧂 ソルトバリア")) changePercent = 0;
     }
 
-    // 🧊 コールドウォーターの保護
     if (data.coldWaterTarget && data.coldWaterTarget.id === idx && data.coldWaterTarget.counts > 0) {
         if (changePercent < 0) changePercent = 0;
     }
     
-    // 次回のツンデレ判定のために今回の変動を記録
     stock.lastChange = changePercent;
-    
     return changePercent;
 }
 
 // ▼ 実際の価格更新
 function updatePrices(skipIntervalUpdate = false) {
+    let passives = getSinPassives();
     let isTempest = isBuffActive("🌪️ テンペスト");
+    
     if (!isTempest && data.tempestCurse && Date.now() >= data.nextTempestStrike) {
         data.nextTempestStrike = Date.now() + 600000;
         showNotification("🌪️ テンペストの後遺症が発作を起こした！相場が荒れ狂っている！");
     }
-    
-    data.stocks.forEach((stock, idx) => {
-        if(!stock.unlocked) return;
-        
-        // 予知済みの値があればそれを使用し、無ければ計算
-        let changePercent = stock.nextChangePercent !== undefined ? stock.nextChangePercent : calculateChangePercent(stock, idx);
-        
-        stock.price = Math.max(10, Math.floor(stock.price * (1 + changePercent)));
-        stock.history.push(stock.price);
-        if(stock.history.length > 30) stock.history.shift();
-        
-        // ❄️ 次回の変動を裏で計算（予知）して保存しておく
-        stock.nextChangePercent = calculateChangePercent(stock, idx);
-    });
-    
-    // 🧊 コールドウォーターのカウント減少
-    if (data.coldWaterTarget && data.coldWaterTarget.counts > 0) {
-        data.coldWaterTarget.counts--;
-        if (data.coldWaterTarget.counts === 0) showNotification("🧊 コールドウォーターの保護効果が切れました。");
+
+    // 🔴 憤怒の呪い処理
+    let wrathCrash = false;
+    let eq = data.equippedSins || [];
+    if (eq.includes("憤怒のミント")) {
+        if (data.alienMints >= 2) data.alienMints -= 2;
+        else { wrathCrash = true; showNotification("💀 憤怒の代償が払えない！全株価が大暴落！！", "error"); }
     }
     
-    data.points += 100;
-    if(!skipIntervalUpdate) data.nextChange = Date.now() + getTickInterval();
+    data.stocks.forEach((stock, idx) => {
+        if(!stock.unlocked && !(passives.hasPrideStock && stock.name === "傲慢な悪魔の秘密な会社")) return;
+        
+        let changePercent = stock.nextChangePercent !== undefined ? stock.nextChangePercent : calculateChangePercent(stock, idx);
+        if (wrathCrash) changePercent = -(0.1 + Math.random() * 0.2); 
+
+        let minPrice = passives.stockMinPrice || 10;
+        stock.price = Math.max(minPrice, Math.floor(stock.price * (1 + changePercent)));
+        
+        stock.history.push(stock.price);
+        if(stock.history.length > 30) stock.history.shift();
+        stock.nextChangePercent = calculateChangePercent(stock, idx);
+    });
+
+    // 🟢 嫉妬の予言
+    if (eq.includes("嫉妬のミント")) {
+        let unlocked = data.stocks.filter(s => s.unlocked || s.visible);
+        if (unlocked.length > 0) {
+            let target = unlocked[Math.floor(Math.random() * unlocked.length)];
+            let willRise = target.nextChangePercent > 0;
+            if (Math.random() < 0.5) willRise = !willRise; // 嘘をつく
+            showNotification(`👁️ 嫉妬の予言：次回「${target.name}」が${willRise ? "上がる" : "下がる"}気がする...`);
+        }
+    }
+    
+    if (data.coldWaterTarget && data.coldWaterTarget.counts > 0) data.coldWaterTarget.counts--;
+    
+    // 💋 色欲の呪い
+    if (passives.canGainPoints) data.points += 100;
+
+    if(!skipIntervalUpdate) {
+        let nextTick = passives.stockTickRate || getTickInterval();
+        data.nextChange = Date.now() + nextTick;
+    }
     updateUI(); drawAllGraph(); save();
-}// --- UI更新・株取引 ---
+}
+    
 function updateUI() {
     document.getElementById("money").innerText = data.money.toLocaleString();
     document.getElementById("points").innerText = data.points;
@@ -769,6 +790,13 @@ function updateUI() {
         `;
         container.appendChild(card);
     });
+    // ▼ 以下を updateUI() の最後に追加
+    let prideStock = data.stocks[10];
+    if (prideStock) prideStock.visible = (data.equippedSins.includes("傲慢のミント"));
+
+    const sinMints = ["傲慢のミント", "嫉妬のミント", "憤怒のミント", "怠惰のミント", "強欲のミント", "暴食のミント", "色欲のミント"];
+    let hasSin = sinMints.some(m => data.mintInventory[m] > 0);
+    document.getElementById("sinMenuBtn").style.display = hasSin ? "inline-block" : "none";
 }
 // ▼ 侵略の禍々しい演出を実行する関数（文字復元付き！） ▼
 function playInvasionEffect(callback) {
@@ -865,7 +893,9 @@ function sellStock(idx, amount) {
         alienBonus *= 100; 
     }
     
-    if (profit > 0) profit = Math.floor(profit * (1 + alienBonus));
+    // ▼ ここを置き換え！
+    let passives = getSinPassives();
+    if (profit > 0) profit = Math.floor(profit * (1 + alienBonus) * passives.moneyMult); // 暴食なら5倍、強欲なら0.6倍
     
     data.money += (stock.buyPrice * qty) + profit;
     stock.owned -= qty;
@@ -879,6 +909,8 @@ function sellStock(idx, amount) {
         // 破片にも異星パッシブを適用
         mintGained = Math.floor(mintGained * (1 + alienBonus));
         
+        // ▼ ここを置き換え！
+        mintGained = Math.floor(mintGained * (1 + alienBonus) * passives.mintMult); // 強欲なら0.6倍
         data.mint += mintGained;
         showNotification(`📈 利益確定！ ${profit.toLocaleString()}Gの利益！ (破片+${mintGained})`);
     }
@@ -1186,6 +1218,7 @@ function openBrew(){
     openScreen("brewScreen");
 }
 function doBrew(){
+    if (!getSinPassives().canBrew) return showNotification("💋 色欲の呪いにより、醸造することができない！");
     const base = document.getElementById("brewBase").value; const m1 = document.getElementById("brewMat1").value; const m2 = document.getElementById("brewMat2").value;
     if(!base || !m1 || !m2) return showNotification("素材が足りません。");
     
@@ -1302,7 +1335,8 @@ function openBag(){
     openScreen("bagScreen");
 }
 
-function usePotion(p){
+function usePotion(p)
+    if (!getSinPassives().canUsePotion) return showNotification("💀 暴食の呪いにより、ポーションを飲むことができない！");
     if(data.potions[p] <= 0) return;
     data.potions[p]--;
     const effect = potionEffects[p];
@@ -1367,69 +1401,51 @@ function usePotion(p){
     updateUI(); save(); openBag();
 }
     
-  function openDestroy(){
+function openDestroy() {
     if(!data.alienPotionUsed) return showNotification("今はまだ、その時ではないようだ...");
-    // ▼ テキストを「侵略」のストーリーに変更
     if(confirm("🛸 最終警告 🛸\n本当にこの惑星をミントで『侵略』し、全てを埋め尽くしますか？\n（※惑星が飲み込まれるため所持金・株・ポイントはリセットされ、上位次元の「異星のミント」を獲得します）")){
         doDestroy();
     }
 }
 
-function doDestroy(){
+function doDestroy() {
     playInvasionEffect(() => {
-    data.invasionCount = (data.invasionCount || 0) + 1;
-    // --- 🩸 侵略時の大罪判定 ---
-    if (isBuffActive("🌪️ テンペスト") || data.tempestCurse) unlockSin("🔥 憤怒の罪");
-    if ((data.currentRunBought || 0) < 500) unlockSin("💤 怠惰の罪");
-    if ((data.currentRunGacha || 0) >= 2000) unlockSin("💰 強欲の罪");
-    if ((data.currentRunShopSpent || 0) >= 10000000) unlockSin("🍖 暴食の罪");
+        data.invasionCount = (data.invasionCount || 0) + 1;
+        // ▼ 侵略フラグをリセット（次の周回で再度ポーションを要求するため）
+        data.alienPotionUsed = false; 
 
-    // --- 通常の侵略処理 ---
-    let gainedAlien = Math.floor(data.mint / 100);
-    if (gainedAlien < 1) gainedAlien = 1; 
-    data.alienMints = (data.alienMints || 0) + gainedAlien;
-    
-    data.money = 30000; 
-    data.points = 0;
-    data.mint = 0; 
-    
-    data.tempestCurse = false; 
-    data.nextTempestStrike = 0;
-    data.midasCurse = false;
-    
-    // ▼ 追加：大罪ミント以外のミント（アイテム）とポーションをすべて没収する
-    const sinMints = ["傲慢のミント", "嫉妬のミント", "憤怒のミント", "怠惰のミント", "強欲のミント", "暴食のミント", "色欲のミント", "ダークマター"];
-    
-    // ミントのリセット
-    for (let m in data.mintInventory) {
-        if (!sinMints.includes(m)) {
-            data.mintInventory[m] = 0;
+        if (isBuffActive("🌪️ テンペスト") || data.tempestCurse) unlockSin("🔥 憤怒の罪");
+        if ((data.currentRunBought || 0) < 500) unlockSin("💤 怠惰の罪");
+        if ((data.currentRunGacha || 0) >= 2000) unlockSin("💰 強欲の罪");
+        if ((data.currentRunShopSpent || 0) >= 10000000) unlockSin("🍖 暴食の罪");
+
+        let gainedAlien = Math.floor(data.mint / 100) || 1;
+        data.alienMints += gainedAlien;
+        
+        data.money = 30000; data.points = 0; data.mint = 0; 
+        data.tempestCurse = false; data.nextTempestStrike = 0; data.midasCurse = false;
+        
+        // ▼ 大罪ミント、ダークマター系は没収しない（引き継ぐ）
+        const keepMints = ["傲慢のミント", "嫉妬のミント", "憤怒のミント", "怠惰のミント", "強欲のミント", "暴食のミント", "色欲のミント", "ダークマター", "🛠️ ダークマターのもと"];
+        for (let m in data.mintInventory) {
+            if (!keepMints.includes(m)) data.mintInventory[m] = 0;
         }
-    }
-    // ついでに作っていたポーションも惑星と一緒に消滅させます
-    for (let p in data.potions) {
-        data.potions[p] = 0;
-    }
-    
-    // ▼ 周回記録をリセット
-    data.currentRunBought = 0;
-    data.currentRunGacha = 0;
-    data.currentRunShopSpent = 0;
-    
-    data.stocks.forEach((s, idx) => {
-        s.owned = 0; s.buyPrice = 0; s.unlocked = idx < 3; s.visible = idx < 3; 
-        s.price = stockTemplates[idx].basePrice; 
-        s.history = [s.price];
-    });
-    
-    // 全てのバフを強制解除
-    data.activeBuffs = {};
-    
-    showNotification(`🛸 惑星は無数のミントに飲み込まれた...『異星のミント』を ${gainedAlien} 個獲得！`);
-    updateUI(); save();
-    
-    checkAchievements(); 
+        for (let p in data.potions) data.potions[p] = 0;
+        
+        data.currentRunBought = 0; data.currentRunGacha = 0; data.currentRunShopSpent = 0;
+        data.equippedSins = []; // 装備も一旦外す
+        
+        data.stocks.forEach((s, idx) => {
+            s.owned = 0; s.buyPrice = 0; 
+            s.unlocked = idx < 3; s.visible = idx < 3; 
+            s.price = s.basePrice; s.history = [s.price];
         });
+        
+        data.activeBuffs = {};
+        
+        showNotification(`🛸 惑星は無数のミントに飲み込まれた...『異星のミント』を ${gainedAlien} 個獲得！`);
+        updateUI(); save(); checkAchievements(); 
+    });
 }
     
 function openAchievements(){
@@ -1495,7 +1511,69 @@ function showNotification(msg){
     container.appendChild(notif);
     setTimeout(() => { if(notif.parentNode) notif.parentNode.removeChild(notif); }, 3000);
 }
+// ▼ 大罪パッシブと呪い効果の計算
+function getSinPassives() {
+    let p = {
+        moneyMult: 1.0, mintMult: 1.0, gachaLuck: 0,
+        stockTickRate: null, stockRiseChance: 0, stockMinPrice: 10,
+        canUsePotion: true, canBrew: true, canGainPoints: true, hasPrideStock: false
+    };
 
+    let eq = data.equippedSins || [];
+    if (eq.includes("憤怒のミント")) { p.stockTickRate = 45000; p.stockRiseChance += 0.2; }
+    if (eq.includes("強欲のミント")) { p.gachaLuck += 1; p.moneyMult *= 0.6; p.mintMult *= 0.6; }
+    if (eq.includes("傲慢のミント")) { p.hasPrideStock = true; }
+    if (eq.includes("暴食のミント")) { p.moneyMult *= 5.0; p.canUsePotion = false; }
+    if (eq.includes("色欲のミント")) { p.stockMinPrice = 500; p.stockRiseChance += 0.1; p.canGainPoints = false; p.canBrew = false; }
+
+    return p;
+}
+
+// ▼ 装備のつけ外し処理
+function toggleSin(mintName) {
+    let idx = data.equippedSins.indexOf(mintName);
+    if (idx !== -1) {
+        data.equippedSins.splice(idx, 1);
+        showNotification(`👿 「${mintName}」の契約を破棄しました。`);
+    } else {
+        if (data.equippedSins.length >= 3) return showNotification("❌ 悪魔との契約は3つまでしか結べません！");
+        data.equippedSins.push(mintName);
+        showNotification(`👿 「${mintName}」と契約を結びました！`);
+    }
+    save(); openSinScreen(); updateUI(); drawAllGraph();
+}
+
+// ▼ 大罪画面を開く処理
+function openSinScreen() {
+    const list = document.getElementById("sinList"); list.innerHTML = "";
+    const sinInfo = {
+        "憤怒のミント": "【📈変動45秒＆上昇率UP / 💀変動毎に異星2個消費(払えないと暴落)】",
+        "怠惰のミント": "【🍎フルーツ農園解放(未実装) / 💀契約中のみ有効】",
+        "強欲のミント": "【🎰ガチャ運微UP / 💀全収益＆破片獲得 0.6倍】",
+        "傲慢のミント": "【🏢超乱高下する裏銘柄解放 / 💀購入中、他が暴落しやすい】",
+        "嫉妬のミント": "【👁️次上がる株を予知 / 💀ただし50%の確率で「嘘」】",
+        "暴食のミント": "【💰資金獲得 5倍 / 💀ポーション使用不可】",
+        "色欲のミント": "【📈株最低値500G＆上昇率微UP / 💀ポイント＆醸造不可】"
+    };
+    
+    let html = `<p style="color:#fca5a5; font-weight:bold; font-size:18px; text-align:center;">契約中の悪魔: ${data.equippedSins.length} / 3</p>`;
+    
+    Object.keys(sinInfo).forEach(m => {
+        if (data.mintInventory[m] > 0) {
+            let isEq = data.equippedSins.includes(m);
+            html += `
+            <div class="list-item" style="border: 1px solid ${isEq ? '#ef4444' : '#555'}; padding: 10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:bold; font-size:16px; color:${isEq ? '#fca5a5' : 'white'};">${m}</span>
+                    <button onclick="toggleSin('${m}')" style="${isEq ? 'background:#ef4444;' : 'background:#444;'} color:white; border-radius:5px; padding:5px 15px;">${isEq ? "契約解除" : "契約する"}</button>
+                </div>
+                <div style="font-size:12px; color:#aaa; margin-top:5px;">${sinInfo[m]}</div>
+            </div>`;
+        }
+    });
+    list.innerHTML = html; openScreen("sinScreen");
+}
+    
 function openTutorial(){ openScreen("tutorialScreen"); }
 
 window.onload = () => { if(data.nickname) startGame(); };
