@@ -1335,8 +1335,12 @@ function openBag(){
     openScreen("bagScreen");
 }
 
-function usePotion(p)
-    if (!getSinPassives().canUsePotion) return showNotification("💀 暴食の呪いにより、ポーションを飲むことができない！");
+function usePotion(p){
+    // ▼ 大罪の呪いストッパー
+    if (typeof getSinPassives === "function" && !getSinPassives().canUsePotion) {
+        return showNotification("💀 暴食の呪いにより、ポーションを飲むことができない！");
+    }
+
     if(data.potions[p] <= 0) return;
     data.potions[p]--;
     const effect = potionEffects[p];
@@ -1346,15 +1350,12 @@ function usePotion(p)
 
         if (p === "💎 マダムロシャス") {
             if (Math.random() < 0.25) {
-                // 25%の確率で30連ガチャ発動
                 let table = getActiveMintTable();
                 let results = {};
-                
                 for(let i = 0; i < 30; i++) {
                     let rand = Math.random() * 100;
                     let sum = 0;
                     let dropped = "ベーシックミント";
-                    
                     for(let m of table) {
                         sum += m.rate;
                         if(rand <= sum) {
@@ -1364,19 +1365,12 @@ function usePotion(p)
                     }
                     results[dropped] = (results[dropped] || 0) + 1;
                     data.mintInventory[dropped] = (data.mintInventory[dropped] || 0) + 1;
-                    
-                    if(!data.discoveredMints.includes(dropped)) {
-                        data.discoveredMints.push(dropped);
-                    }
+                    if(!data.discoveredMints.includes(dropped)) data.discoveredMints.push(dropped);
                 }
-                
-                // 結果をまとめてテキスト化して通知
                 let resultText = Object.keys(results).map(k => `${k}×${results[k]}`).join("、");
                 showNotification(`🎉 【大当たり】マダムの気まぐれ30連ガチャ！\n獲得: ${resultText}`);
                 checkAchievements();
-                
             } else {
-                // 75%でハズレ
                 showNotification(`💨 マダムはあなたに興味を示さなかった...（ハズレ）`);
             }
         }
@@ -1387,7 +1381,6 @@ function usePotion(p)
             showNotification(`⚠️ 【警告】テンペストの効果により、相場が制御不能になりました...`);
         }
         
-        // ▼ 異質なポーション使用時に禁忌のレシピ解放
         if (p === "❓ 異質なポーション" && !data.alienPotionUsed) {
             data.alienPotionUsed = true;
             showNotification("🧠 ヴヴヴ...!! 宇宙の真理に触れ、『禁忌のレシピ』を理解してしまった...");
