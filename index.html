@@ -273,7 +273,47 @@ select { background: black; color: white; border: 1px solid #a855f7; padding: 10
 
 <script>
 // --- 基本データと初期化 ---
-// --- 基本データと初期化 ---
+// --- 基本データと初期化 --
+    // ▼ アイテム名に応じた画像(SVG)を生成して返す関数
+function getItemImage(itemName) {
+    let svg = "";
+    
+    if (itemName.includes("ダークマター")) {
+        // 🌑 ダークマターの画像（怪しく光る球体）
+        svg = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+          <circle cx="50" cy="50" r="35" fill="#1e1b4b" stroke="#a855f7" stroke-width="4" />
+          <path d="M25 50 Q50 20 75 50 T25 50" fill="none" stroke="#d8b4fe" stroke-width="3"/>
+          <circle cx="50" cy="50" r="15" fill="#000000"/>
+          <circle cx="35" cy="35" r="4" fill="#a855f7"/>
+          <circle cx="70" cy="65" r="3" fill="#c084fc"/>
+        </svg>`;
+    } 
+    else if (itemName.includes("ポーション") || itemName.includes("サワー") || itemName.includes("ウォーター")) {
+        // 🧪 ポーション系の画像（怪しいフラスコ）
+        let color = itemName.includes("異質") ? "#ef4444" : (itemName.includes("氷") || itemName.includes("コールド") ? "#06b6d4" : "#a855f7");
+        svg = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+          <path d="M40 20 L60 20 L60 35 L85 85 A 5 5 0 0 1 80 95 L20 95 A 5 5 0 0 1 15 85 L40 35 Z" fill="rgba(255,255,255,0.05)" stroke="${color}" stroke-width="4"/>
+          <path d="M25 75 L75 75 L70 90 L30 90 Z" fill="${color}"/>
+          <rect x="35" y="10" width="30" height="10" fill="#374151" rx="3"/>
+          <circle cx="50" cy="82" r="3" fill="#ffffff" opacity="0.5"/>
+        </svg>`;
+    } 
+    else {
+        // 🌿 ミント系の画像（デフォルトの葉っぱ）
+        let leafColor = "#22c55e"; // 基本は緑
+        if(itemName.includes("ブラッド") || itemName.includes("レッド") || itemName.includes("憤怒")) leafColor = "#ef4444";
+        if(itemName.includes("ブルー") || itemName.includes("フロスト")) leafColor = "#3b82f6";
+        if(itemName.includes("ゴールド") || itemName.includes("強欲")) leafColor = "#eab308";
+        if(itemName.includes("ギャラクシー") || itemName.includes("傲慢")) leafColor = "#a855f7";
+
+        svg = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+          <path d="M50 15 C 10 40, 10 90, 50 95 C 90 90, 90 40, 50 15 Z" fill="${leafColor}" stroke="#ffffff" stroke-opacity="0.3" stroke-width="2"/>
+          <path d="M50 25 L50 90 M50 55 L30 45 M50 70 L70 55" stroke="#000000" stroke-opacity="0.3" stroke-width="3" stroke-linecap="round"/>
+        </svg>`;
+    }
+    
+    return svg;
+}-
 const stockTemplates = [
     { name: "アストロ通信", basePrice: 300, vol: 0.02, desc: "安定感抜群だが成長は遅い。おしゃべり好き。" },
     { name: "スターダスト鉱業", basePrice: 500, vol: 0.05, desc: "資源価格に左右される。無骨で真面目。" },
@@ -1304,20 +1344,38 @@ function openRecipeTree(){
     });
 }
 
+// --- ミント図鑑（画像付きビンテージ風） ---
 function openMint(){
     const list = document.getElementById("mintList"); list.innerHTML = "";
     const sortedMintTypes = getActiveMintTable();
-    let html = `<div style="margin-bottom:20px; border-bottom:1px solid #a855f7; padding-bottom:10px;">`;
-    sortedMintTypes.forEach(m => { html += `<div style="display:flex; justify-content:space-between; font-size:14px;"><span>${m.name}</span> <span style="color:#aaa;">${m.rate}%</span></div>`; });
+    
+    let html = `<div style="margin-bottom:20px; border-bottom:1px dashed #a855f7; padding-bottom:10px;">
+                <h3 style="color:#e9d5ff; text-align:center; margin-top:0;">抽出レート</h3>`;
+    sortedMintTypes.forEach(m => { html += `<div style="display:flex; justify-content:space-between; font-size:14px; color:#ccc;"><span>${m.name}</span> <span>${m.rate}%</span></div>`; });
     html += `</div>`;
     
-    const inventory = Object.keys(data.mintInventory).filter(k => data.mintInventory[k] > 0);
-    if(inventory.length === 0) html += "<p style='text-align:center; color:#888;'>所持アイテムはありません。</p>";
-    inventory.forEach(m => { html += `<div class="list-item"><span>${m}</span> <span style="color:#c084fc; font-weight:bold;">x${data.mintInventory[m]}</span></div>`; });
+    // ▼ ここから所持アイテムを「画像付きのカード」として並べます
+    html += `<h3 style="color:#eab308; text-align:center;">所持しているミント</h3>`;
+    html += `<div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">`;
     
+    const inventory = Object.keys(data.mintInventory).filter(k => data.mintInventory[k] > 0);
+    if(inventory.length === 0) html += "<p style='text-align:center; color:#888; width:100%;'>所持アイテムはありません。</p>";
+    
+    inventory.forEach(m => { 
+        html += `
+        <div style="background: rgba(10,5,25,0.8); border: 1px solid #a855f7; border-radius: 8px; padding: 10px; width: 100px; text-align: center; box-shadow: 0 0 10px rgba(168,85,247,0.2);">
+            <div style="width: 60px; height: 60px; margin: 0 auto 10px auto; background: radial-gradient(circle, #2e1a4d 0%, #0c061a 100%); border-radius: 5px; border: 1px dashed #c084fc; padding: 5px;">
+                ${getItemImage(m)}
+            </div>
+            <div style="font-size: 11px; color: #e9d5ff; font-weight: bold; height: 30px; display:flex; align-items:center; justify-content:center;">${m}</div>
+            <div style="font-size: 14px; color: #c084fc; font-weight: bold; margin-top: 5px;">x ${data.mintInventory[m]}</div>
+        </div>`; 
+    });
+    
+    html += `</div>`;
     list.innerHTML = html; openScreen("mintScreen");
 }
-
+    
 function openBag(){
     const list = document.getElementById("bagList"); list.innerHTML = "";
     const pKeys = Object.keys(data.potions).filter(k => data.potions[k] > 0);
